@@ -1,0 +1,730 @@
+import { useState, useRef, useCallback, useEffect } from "react";
+const C={navy:"#0f2233",mid:"#1a3a5c",gold:"#F5A623",blue:"#4A90D9",purple:"#9B59B6",green:"#27AE60",pink:"#D81B8C",red:"#E74C3C",teal:"#16A085",orange:"#E67E22"};
+const shuffle=arr=>[...arr].sort(()=>Math.random()-0.5);
+
+const UI={
+  en:{begin:"BEGIN THE JOURNEY →",next:"NEXT →",done:"ZONE COMPLETE ✓",correct:"Correct!",wrong:"Not quite",map:"Journey Map",zones:"zones complete",claim:"🏆 VIEW FINAL REPORT",again:"Play Again",name:"Enter your name...",translating:"Loading...",awarded:"Awarded to",knowledge:"KNOWLEDGE",scenario:"SCENARIO",tf:"TRUE / FALSE",restart:"Restart",noLives:"No lives remaining",score:"Score",certBody:"Completed the RUZIVO DEI Knowledge Challenge and demonstrated knowledge, reflection and readiness for inclusive leadership.",psychSub:"No right or wrong — just honest reflection",likert:["Strongly Disagree","Disagree","Neutral","Agree","Strongly Agree"],knowledgeAch:"Knowledge Achievement",practitioner:"Practitioner Readiness",deiProfile:"DEI Profile",nextStep:"Recommended ALP Next Step",strength:"Strength",register:"Tell Us About Yourself",country:"Your Country / Region",org:"Your Organisation",role:"Your Role",startZone:"I'm Ready — Start Zone →",skipConcept:"Skip — I know this →",keyLearning:"Key Learning Before You Play",meTitle:"M&E Dashboard",meTotalPlayers:"Players",meCountries:"Countries",meOrgs:"Organisations",meRecent:"Recent Players",meNoData:"No player data yet. Share RUZIVO!",hint:"💡 Hint (-5pts)",hintUsed:"Hint",zoneComplete:"Zone Complete!",continueJourney:"Continue Journey →",bossLevel:"⚡ BOSS LEVEL",bossDesc:"Hardest question in the zone — take your time.",streakMsg:["🔥 On Fire!","⚡ Unstoppable!","🌟 Brilliant!","💎 Master!"],timesUp:"⏱️ Time's up!",missed:"Questions You Missed",gotIt:"I've got it now ✓",stillUnsure:"Still unsure",reviewTitle:"Review Before Celebrating",lbTitle:"🏆 Leaderboard",lbNoData:"No scores yet — be the first!",lbRank:"Rank",lbPlayer:"Player",lbScore:"Score",lbProfile:"DEI Profile"},
+  es:{begin:"COMENZAR →",next:"SIGUIENTE →",done:"ZONA COMPLETADA ✓",correct:"¡Correcto!",wrong:"No exactamente",map:"Mapa",zones:"zonas",claim:"🏆 VER INFORME",again:"Jugar de nuevo",name:"Tu nombre...",translating:"Cargando...",awarded:"Otorgado a",knowledge:"CONOCIMIENTO",scenario:"ESCENARIO",tf:"VERDADERO/FALSO",restart:"Reiniciar",noLives:"Sin vidas",score:"Puntos",certBody:"Completó el Desafío de Conocimiento DEI de RUZIVO y demostró conocimiento, reflexión y preparación para el liderazgo inclusivo.",psychSub:"No hay respuestas correctas — solo reflexión honesta",likert:["Totalmente en desacuerdo","En desacuerdo","Neutral","De acuerdo","Totalmente de acuerdo"],knowledgeAch:"Logro",practitioner:"Preparación",deiProfile:"Perfil DEI",nextStep:"Próximo Paso ALP",strength:"Fortaleza",register:"Cuéntanos sobre ti",country:"Tu País",org:"Tu Organización",role:"Tu Rol",startZone:"Listo — Iniciar →",skipConcept:"Omitir →",keyLearning:"Aprendizaje Clave",meTitle:"Panel M&E",meTotalPlayers:"Jugadores",meCountries:"Países",meOrgs:"Organizaciones",meRecent:"Jugadores Recientes",meNoData:"Sin datos aún.",hint:"💡 Pista (-5pts)",hintUsed:"Pista",zoneComplete:"¡Zona Completa!",continueJourney:"Continuar →",bossLevel:"⚡ NIVEL JEFE",bossDesc:"La pregunta más difícil.",streakMsg:["🔥 ¡En racha!","⚡ ¡Imparable!","🌟 ¡Brillante!","💎 ¡Maestro!"],timesUp:"⏱️ ¡Tiempo!",missed:"Preguntas que fallaste",gotIt:"Ya lo entiendo ✓",stillUnsure:"Aún no estoy seguro",reviewTitle:"Revisión antes de celebrar",lbTitle:"🏆 Clasificación",lbNoData:"Sin puntuaciones aún.",lbRank:"#",lbPlayer:"Jugador",lbScore:"Puntos",lbProfile:"Perfil DEI"},
+  fr:{begin:"COMMENCER →",next:"SUIVANT →",done:"ZONE COMPLÉTÉE ✓",correct:"Correct !",wrong:"Pas tout à fait",map:"Carte",zones:"zones",claim:"🏆 RAPPORT FINAL",again:"Rejouer",name:"Ton nom...",translating:"Chargement...",awarded:"Décerné à",knowledge:"CONNAISSANCE",scenario:"SCÉNARIO",tf:"VRAI/FAUX",restart:"Recommencer",noLives:"Plus de vies",score:"Points",certBody:"A complété le Défi de Connaissance DEI de RUZIVO et démontré connaissance, réflexion et préparation au leadership inclusif.",psychSub:"Pas de bonnes ou mauvaises réponses",likert:["Pas du tout d'accord","Pas d'accord","Neutre","D'accord","Tout à fait d'accord"],knowledgeAch:"Acquis",practitioner:"Préparation",deiProfile:"Profil DEI",nextStep:"Prochaine Étape",strength:"Force",register:"Parle-nous de toi",country:"Ton Pays",org:"Ton Organisation",role:"Ton Rôle",startZone:"Prêt — Commencer →",skipConcept:"Passer →",keyLearning:"Points Clés",meTitle:"Tableau de Bord",meTotalPlayers:"Joueurs",meCountries:"Pays",meOrgs:"Organisations",meRecent:"Joueurs Récents",meNoData:"Pas encore de données.",hint:"💡 Indice (-5pts)",hintUsed:"Indice",zoneComplete:"Zone Complétée !",continueJourney:"Continuer →",bossLevel:"⚡ NIVEAU BOSS",bossDesc:"La question la plus difficile.",streakMsg:["🔥 En feu !","⚡ Inarrêtable !","🌟 Brillant !","💎 Maître !"],timesUp:"⏱️ Temps écoulé !",missed:"Questions manquées",gotIt:"J'ai compris ✓",stillUnsure:"Pas encore sûr",reviewTitle:"Révision avant de célébrer",lbTitle:"🏆 Classement",lbNoData:"Pas encore de scores.",lbRank:"#",lbPlayer:"Joueur",lbScore:"Points",lbProfile:"Profil DEI"},
+  pt:{begin:"INICIAR →",next:"PRÓXIMO →",done:"ZONA CONCLUÍDA ✓",correct:"Correto!",wrong:"Não exatamente",map:"Mapa",zones:"zonas",claim:"🏆 RELATÓRIO FINAL",again:"Jogar novamente",name:"Seu nome...",translating:"Carregando...",awarded:"Concedido a",knowledge:"CONHECIMENTO",scenario:"CENÁRIO",tf:"VERDADEIRO/FALSO",restart:"Reiniciar",noLives:"Sem vidas",score:"Pontos",certBody:"Concluiu o Desafio de Conhecimento DEI do RUZIVO e demonstrou conhecimento, reflexão e prontidão para liderança inclusiva.",psychSub:"Sem respostas certas — apenas reflexão honesta",likert:["Discordo totalmente","Discordo","Neutro","Concordo","Concordo totalmente"],knowledgeAch:"Conquista",practitioner:"Prontidão",deiProfile:"Perfil DEI",nextStep:"Próximo Passo",strength:"Força",register:"Nos conte sobre você",country:"Seu País",org:"Sua Organização",role:"Seu Papel",startZone:"Pronto — Iniciar →",skipConcept:"Pular →",keyLearning:"Pontos Chave",meTitle:"Painel M&A",meTotalPlayers:"Jogadores",meCountries:"Países",meOrgs:"Organizações",meRecent:"Jogadores Recentes",meNoData:"Sem dados ainda.",hint:"💡 Dica (-5pts)",hintUsed:"Dica",zoneComplete:"Zona Concluída!",continueJourney:"Continuar →",bossLevel:"⚡ NÍVEL CHEFE",bossDesc:"A pergunta mais difícil.",streakMsg:["🔥 Em chamas!","⚡ Imparável!","🌟 Brilhante!","💎 Mestre!"],timesUp:"⏱️ Tempo esgotado!",missed:"Questões que você errou",gotIt:"Entendi agora ✓",stillUnsure:"Ainda não tenho certeza",reviewTitle:"Revisão antes de celebrar",lbTitle:"🏆 Classificação",lbNoData:"Sem pontuações ainda.",lbRank:"#",lbPlayer:"Jogador",lbScore:"Pontos",lbProfile:"Perfil DEI"},
+  sn:{begin:"TANGA RWENDO →",next:"TEVERA →",done:"PEDZA NHARAUNDA ✓",correct:"Ndiyo!",wrong:"Aiwa",map:"Mepu",zones:"dzapedza",claim:"🏆 ONA MUSHUMO",again:"Tanga patsva",name:"Nyora zita rako...",translating:"Gadzirira...",awarded:"Zita",knowledge:"RUZIVO",scenario:"MUENZANISO",tf:"CHOKWADI/NHEMA",restart:"Tanga patsva",noLives:"Hapana hupenyu",score:"Mapoinzi",certBody:"Akapedza RUZIVO DEI Knowledge Challenge uye akaratidza ruzivo, kufungisisa uye kugadzirira utungamiriri.",psychSub:"Hapana mhinduro dzakanaka — kungofunga chokwadi",likert:["Handisi Kubvuma Zvachose","Handisi Kubvuma","Pakati","Ndinobvuma","Ndinobvuma Zvachose"],knowledgeAch:"Ruzivo",practitioner:"Kugadzirira",deiProfile:"Chimiro",nextStep:"Danho Rinotevera",strength:"Simba",register:"Tiudze nezako",country:"Nyika",org:"Sangano",role:"Basa",startZone:"Ndagadzirira — Tanga →",skipConcept:"Siya →",keyLearning:"Zvidzidzo",meTitle:"Dashboard yeM&E",meTotalPlayers:"Vatambi",meCountries:"Nyika",meOrgs:"Masangano",meRecent:"Vatambi Vanyowani",meNoData:"Hapana data zvino.",hint:"💡 Rubatsiro (-5pts)",hintUsed:"Rubatsiro",zoneComplete:"Nharaunda Yapedza!",continueJourney:"Enderera →",bossLevel:"⚡ MUBVUNZO MUKURU",bossDesc:"Mubvunzo wakaomesesa.",streakMsg:["🔥 Unopisa!","⚡ Haungamiriswe!","🌟 Waita!","💎 Nyanzvi!"],timesUp:"⏱️ Nguva yapera!",missed:"Mibvunzo yakakanganiswa",gotIt:"Ndazvinzwisisa ✓",stillUnsure:"Handizivi",reviewTitle:"Onai musati mafara",lbTitle:"🏆 Mubvuwiro",lbNoData:"Hapana mapoinzi zvino.",lbRank:"#",lbPlayer:"Mutambi",lbScore:"Mapoinzi",lbProfile:"Chimiro"},
+};
+
+const ZONES=[
+  {id:1,names:{en:"Know Yourself",es:"Conócete",fr:"Connais-toi",pt:"Conhece-te",sn:"Zvazvauri"},sub:"Identity · Ubuntu · Socialisation",color:C.blue,icon:"🪞",tag:"S1–S2"},
+  {id:2,names:{en:"Know Your Context",es:"Tu Contexto",fr:"Ton Contexte",pt:"Teu Contexto",sn:"Nzwisiso"},sub:"Zimbabwe Data · History · Policy",color:C.purple,icon:"🗺️",tag:"Zimbabwe"},
+  {id:3,names:{en:"Gender Justice",es:"Justicia de Género",fr:"Justice de Genre",pt:"Justiça de Género",sn:"Kuenzanisa"},sub:"Feminism · Womanism · GBV · Equity",color:C.pink,icon:"⚖️",tag:"SDG 5"},
+  {id:4,names:{en:"Child & Youth",es:"Niños y Jóvenes",fr:"Enfants et Jeunesse",pt:"Crianças e Jovens",sn:"Mwana"},sub:"MBIMB · Protection · Rights",color:C.gold,icon:"🌱",tag:"SDG 16"},
+  {id:5,names:{en:"Practitioner Toolkit",es:"Autoevaluación",fr:"Boîte à Outils",pt:"Autoavaliação",sn:"Hwaro"},sub:"Self-Assessment · No Right or Wrong",color:C.green,icon:"🧰",tag:"Self-Check",type:"toolkit"},
+  {id:6,names:{en:"Leadership Toolkit",es:"Liderazgo",fr:"Leadership",pt:"Liderança",sn:"Chiito"},sub:"TFA · TFZ · AIIDEV · UNDP · ZOU · IEP · MBIMB",color:C.red,icon:"✊",tag:"Leadership"},
+  {id:7,names:{en:"DEI Profile",es:"Perfil DEI",fr:"Profil DEI",pt:"Perfil DEI",sn:"Chimiro"},sub:"Values · Mindset · No Right or Wrong",color:C.teal,icon:"🧭",tag:"Profile",type:"psychometric"},
+];
+
+const ZONE_CONCEPTS={
+  1:{concepts:[{k:"Ubuntu / Hunhu",v:"'I am because we are.' Identity is communal, not individual. Stanlake Samkange formalised this as Zimbabwean political philosophy in 1980."},{k:"Cycle of Socialisation",v:"We absorb values, norms and identities from birth, before we have the language to question them."},{k:"Cycle of Liberation",v:"Waking Up → Reaching Out → Building Community → Coalescing → Creating Change. Liberation is a learnable, collective pathway."}]},
+  2:{concepts:[{k:"Zimbabwe's Education Crisis",v:"33.19% O-Level pass rate. 895,000+ children out of school. Geography, not intelligence, determines outcomes."},{k:"GBV in Zimbabwe",v:"1 in 3 women have experienced physical violence. 25.8% of all GBV victims are children."},{k:"History Shapes Now",v:"Gukurahundi (1983–87) still blocks exam registration through destroyed birth certificates."}]},
+  3:{concepts:[{k:"Equality vs Equity",v:"Gender equality removes barriers for all. Gender equity deliberately elevates those historically disadvantaged."},{k:"Africana Womanism",v:"Gender justice rooted in African epistemology, not a Western import. Nehanda led resistance before Western feminism was named."},{k:"Both / And Imperative",v:"Empowering girls AND transforming boys is not a competition. It addresses structure, not just symptom."}]},
+  4:{concepts:[{k:"My Body Is My Body (MBIMB)",v:"Bodily autonomy is a child protection tool. Disclosures of abuse are NEVER confidential, mandated reporting is non-negotiable."},{k:"Period Poverty",v:"60% of rural girls lack reliable menstrual products. 20% of school days are lost."},{k:"Child Economic Exploitation",v:"Organised child begging directed by adults violates ILO Convention No. 182."}]},
+  5:{concepts:[{k:"Phase 1 — Diagnose",v:"What behaviour is happening? What unconscious worldview lies beneath it? Diagnosis must precede intervention."},{k:"Phase 2 — Equity Alternative",v:"What would equity-aligned beliefs and behaviour look like here? Construct the alternative before you intervene."},{k:"Phase 3 — Take Action",v:"What conditions support new values and behaviours? Courage, care, compassion and curiosity are the foundation."}]},
+  6:{concepts:[{k:"IEP Positive Peace",v:"Peace is measured through equitable resource distribution and rights acceptance. Every child in school is peace architecture."},{k:"Coaching Leadership",v:"Build others' capacity, not dependency. Ask powerful questions and design for agency, not rescue."},{k:"In-the-Moment Action",v:"Name harm at the right level first. Private before public. Evidence-grounded and proportionate."}]},
+};
+
+const ORGS=["Teach For All","Teach For Zimbabwe","AIIDEV Africa","UNDP","Zimbabwe Open University (ZOU)","PGCN","MBIMB Network","Inst. for Economics & Peace","School / Education Institution","Government / Ministry","Civil Society / NGO","Community Organisation","Other / Individual"];
+const ROLES=["Teacher / Educator","Student / Youth Learner","Development Professional","Community Leader","Researcher / Academic","Policy Maker / Government","NGO / Civil Society Worker","DEI Advocate / Practitioner","School Leader / Administrator","Other"];
+
+const Q=[
+  {z:1,t:"mcq",p:10,q:"The Cycle of Socialisation and Cycle of Liberation were developed by:",o:["Paulo Freire","Bobbie Harro","bell hooks","Stanlake Samkange"],a:1,e:"Bobbie Harro's frameworks map how systems shape identity before awareness, and how liberation becomes possible through collective action."},
+  {z:1,t:"tf",p:10,q:"Socialisation begins before we are conscious of it, absorbed through family and early community.",a:true,e:"We absorb values and identity markers from birth. Unlearning requires sustained, intentional effort."},
+  {z:1,t:"mcq",p:10,q:"The Shona concept that directly parallels Ubuntu philosophy is:",o:["Lobola","Nhaka","Hunhu","Gota"],a:2,e:"Hunhu, formalised as Zimbabwean political philosophy by Stanlake Samkange in 1980."},
+  {z:1,t:"mcq",p:10,q:"Ubuntu 'umuntu ngumuntu ngabantu' most directly supports:",o:["Individual achievement as the ultimate goal","Collective responsibility, equity requires community not just personal action","Merit systems as inherently neutral","Western frameworks as universally applicable"],a:1,e:"Ubuntu frames equity as a communal obligation. The village is incomplete when any member is excluded."},
+  {z:1,t:"scenario",p:20,q:"A colleague says: 'I treat everyone the same, I don't see gender.' You:",o:["Agree, treating everyone the same is equality","Name the worldview: gender-blindness erases lived experience and is not equity","Stay silent to preserve the relationship","Refer the matter to HR"],a:1,e:"Gender-blindness denies structural disadvantage. Equity requires seeing difference and responding with deliberate, corrective action."},
+  {z:1,t:"mcq",p:10,q:"The Cycle of Liberation begins with:",o:["Coalition building","Taking organised social action","Waking up, introspection and growing awareness","Changing national institutions"],a:2,e:"Liberation begins internally. You cannot change what you cannot see."},
+  {z:1,t:"tf",p:10,q:"Dominant group members often experience their own identity as 'default' rather than as a socialised identity.",a:true,e:"Creating space for this recognition without shame is a foundational DEI practitioner skill."},
+  {z:1,t:"mcq",p:10,q:"Why is personal storytelling foundational in DEI work?",o:["It is easier than data","Stories surface how systems shaped our identity, making invisible socialisation visible","It replaces academic DEI frameworks","It builds relationships without intellectual engagement"],a:1,e:"Storytelling is epistemological, the stories we carry contain evidence of how systems have shaped us."},
+  {z:1,t:"tf",p:10,q:"A DEI practitioner's first obligation is to change others, personal self-awareness is secondary.",a:false,e:"False. DEI work must begin with self. You cannot facilitate transformation in others that you have not begun in yourself."},
+  {z:1,t:"scenario",p:30,q:"BOSS LEVEL — A participant says: 'I don't have an identity, I'm just normal.' You are facilitating. You:",o:["Move on quickly to avoid disrupting the flow","Invite reflection: everyone has a socialised identity, including dominant groups, and exploring yours is the beginning of DEI competence","Correct them sharply in front of the group","Ask other participants to respond on your behalf"],a:1,e:"Dominant groups experience their identity as 'default', which is itself a socialised condition."},
+  {z:2,t:"mcq",p:10,q:"Approximately what proportion of Zimbabwean women aged 15–49 have experienced physical violence?",o:["1 in 10","1 in 5","1 in 3","1 in 2"],a:2,e:"Approximately 1 in 3 (39.4%). Structural responses are required: legislative enforcement, economic empowerment and cultural transformation simultaneously."},
+  {z:2,t:"mcq",p:10,q:"Section 56 of Zimbabwe's 2013 Constitution guarantees:",o:["The right to a basic state-funded education","Equality and non-discrimination across all protected characteristics","Freedom of conscience and religion","The right to form political parties"],a:1,e:"Section 56 guarantees equality and non-discrimination."},
+  {z:2,t:"tf",p:10,q:"Zimbabwe's national O-Level pass rate in 2024 was above 50%.",a:false,e:"False, the 2024 national pass rate was 33.19%. This reflects structural inequality, not individual failure."},
+  {z:2,t:"mcq",p:10,q:"What percentage of Zimbabwean women were married before age 18 as of 2022?",o:["8.4%","16.2%","33.7%","42.1%"],a:1,e:"16.2%, a declining but persistently serious barrier."},
+  {z:2,t:"scenario",p:20,q:"A policy document states: 'Women in precolonial Africa were always subordinate to male authority.' In a workshop, you:",o:["Accept it","Challenge it: women held spiritual authority, agricultural governance and mediation roles in precolonial African societies","Avoid the debate","Agree but note things have improved"],a:1,e:"Spirit mediums like Nehanda demonstrate substantial precolonial female agency."},
+  {z:2,t:"mcq",p:10,q:"The SADC Protocol commits member states to what percentage of women in decision-making by 2030?",o:["30%","40%","50%","60%"],a:2,e:"50%. Parliaments with higher female representation demonstrate stronger legislative attention to health, education and child protection."},
+  {z:2,t:"mcq",p:10,q:"Matabeleland North's Grade 7 pass rate in 2020 was:",o:["31%","24%","16%","8%"],a:2,e:"16%, compared to Harare's 66.5%. Systematic educational deprivation mapped onto geography and history."},
+  {z:2,t:"tf",p:10,q:"Only 15% of Zimbabwe's population completes upper secondary education.",a:true,e:"Access without completion is inclusion without equity."},
+  {z:2,t:"mcq",p:10,q:"The BaTonga people of Binga were displaced to build:",o:["Hwange Power Station","Kariba Dam","Cahora Bassa Dam","The Limpopo Valley Irrigation Scheme"],a:1,e:"23,000 BaTonga were displaced to generate electricity. Over 60 years later, Binga remains without reliable power."},
+  {z:2,t:"scenario",p:30,q:"BOSS LEVEL — A district education officer says: 'Our pass rates are low because rural parents don't value education.' Applying the Village Systems Model, you:",o:["Agree, community attitudes drive outcomes","Diagnose all vectors: Geography, Economic, Policy, Institutional, Climate, Community and Gender, 'parent attitudes' is the symptom not the cause","Suggest parent education programmes only","Avoid disagreeing with the officer's authority"],a:1,e:"The Village Systems Model demands analysis across all vectors simultaneously."},
+  {z:3,t:"mcq",p:10,q:"Africana Womanism was developed by:",o:["Chimamanda Ngozi Adichie","Clenora Hudson-Weems","Oyèrónkẹ Oyěwùmí","bell hooks"],a:1,e:"Hudson-Weems situates African women's struggle within race, class, culture and community."},
+  {z:3,t:"tf",p:10,q:"Gender equity and gender equality mean the same thing.",a:false,e:"Gender equality removes barriers for all. Gender equity applies corrective measures for historical disadvantage."},
+  {z:3,t:"mcq",p:10,q:"Gender equity involves deliberately ___ the girl child given historical structural disadvantage:",o:["Protecting","Separating","Elevating","Privileging"],a:2,e:"Elevating is corrective, not preferential, it is how genuine equality becomes achievable for everyone."},
+  {z:3,t:"scenario",p:20,q:"A donor insists your programme adopt a specific ideological position to receive funding. You:",o:["Accept, funding is critical","Assert institutional sovereignty: reject ideological conditionality and seek community-accountable alternatives","Partially comply while maintaining internal disagreement","Ignore the condition and accept the money"],a:1,e:"Community-generated knowledge, not donor-conditioned ideology, must drive programming design."},
+  {z:3,t:"mcq",p:10,q:"The spirit medium who led Zimbabwean anti-colonial resistance is:",o:["Lobengula","Nehanda","Mbuya Chipfaya","Sekai Nzenza"],a:1,e:"Nehanda exercised political agency and spiritual leadership long before Western feminist movements emerged."},
+  {z:3,t:"tf",p:10,q:"The 50/50 representation goal is a demand for identical domestic roles for men and women.",a:false,e:"50/50 is a governance principle for equitable presence in spaces of authority."},
+  {z:3,t:"mcq",p:10,q:"The 2021 Zimbabwe GBV data records how many women abused nationally?",o:["3,053","5,301","12,186","15,239"],a:2,e:"12,186 women, alongside 3,053 men and 5,301 children. Underreporting is significant across all categories."},
+  {z:3,t:"scenario",p:20,q:"A colleague argues: 'Focusing on boy child education takes resources away from girls.' You:",o:["Agree, evidence prioritises girls","Affirm girls' priority needs, then introduce the both/and evidence: transforming boys is the structural complement to empowering girls","Dismiss the concern","Suggest separating the debates"],a:1,e:"GBV prevention that invests only in girls without transforming boys addresses symptom rather than structure."},
+  {z:3,t:"mcq",p:10,q:"The Gota programme develops:",o:["Girl child scholarships","Boy child responsibility, care and respect, reducing GBV costs","Menstrual health provision","Community mediation in GBV cases"],a:1,e:"Investing in transformative boy child programming is structurally less costly than repairing harm from untransformed masculinity."},
+  {z:3,t:"scenario",p:30,q:"BOSS LEVEL — A headteacher says: 'We focus on the girl child only, boys are fine.' You are the DEI advocate. You:",o:["Agree, institutional focus should remain exclusively on girls","Present the evidence: male child GBV victims exist and boys face greater risk of grade repetition in most countries, propose a both/and school programme","Stay silent, the headteacher has authority","Wait for national policy to address boy child issues"],a:1,e:"The both/and imperative: girl child empowerment and boy child transformation are structural complements."},
+  {z:4,t:"mcq",p:10,q:"According to Zimbabwe's 2021 GBV data, what percentage of all GBV victims were children?",o:["12.4%","19.1%","25.8%","31.2%"],a:2,e:"25.8%, 4,115 girls and 1,186 boys. Boy child victimisation is real, underreported and structurally underserved."},
+  {z:4,t:"tf",p:10,q:"Excluding boys from menstrual health education protects girls' safe space and produces better equity outcomes.",a:false,e:"Exclusion produces ignorance, stigma and institutional barriers for girls."},
+  {z:4,t:"mcq",p:10,q:"UNICEF Zimbabwe (2025) estimated how many children require urgent humanitarian assistance?",o:["1.2 million","2.1 million","3.5 million","4.8 million"],a:2,e:"3.5 million, driven by El Niño drought."},
+  {z:4,t:"scenario",p:20,q:"MBIMB — A Form 1 student discloses that an older student touched them inappropriately and asks you not to tell anyone. You:",o:["Respect confidentiality and say nothing","Reassure the student, explain you are mandated to report to protect them, and immediately follow your school's child protection pathway","Handle it yourself without involving administration","Tell the student's parents directly, bypassing school procedures"],a:1,e:"My Body Is My Body: disclosures of abuse are NEVER confidential."},
+  {z:4,t:"mcq",p:10,q:"Approximately what percentage of rural Zimbabwean girls' school days are lost to period poverty?",o:["5%","10%","20%","35%"],a:2,e:"20%, one school day in five."},
+  {z:4,t:"tf",p:10,q:"Male GBV survivors face fewer disclosure barriers than female survivors.",a:false,e:"Male survivors face compounded barriers: stigma, absent support infrastructure and masculinity norms that deny vulnerability."},
+  {z:4,t:"mcq",p:10,q:"Zimbabwe's BEAM programme does NOT currently cover:",o:["Tuition fees","Examination fees","School uniforms, meals and learning materials","Building fund contributions"],a:2,e:"A child can be a registered BEAM beneficiary and still be sent home for lacking a uniform."},
+  {z:4,t:"scenario",p:20,q:"Children around 10 years old are organised as beggars in a city CBD with daily financial targets set by adults. This constitutes:",o:["A poverty coping strategy requiring community sensitivity","Child economic exploitation under ILO Convention No. 182","A cultural practice requiring contextual sensitivity","A welfare issue only"],a:1,e:"Directing attention to the supervising adults identifies a structured exploitation system."},
+  {z:4,t:"mcq",p:10,q:"The Education Amendment Act of 2020 prohibits:",o:["Holiday lessons at private centres","Exclusion from school on grounds of pregnancy","Male teachers from teaching female-only classes","Corporal punishment in primary schools only"],a:1,e:"Implementation gaps remain, mandatory maternity leave still functions as de facto exclusion in some schools."},
+  {z:4,t:"scenario",p:30,q:"BOSS LEVEL — A 13-year-old girl has been absent 3 weeks. Her teacher says: 'Her family couldn't afford the uniform.' Applying the Village Systems Model, you identify barriers in:",o:["Only the Economic Vector","Policy, Economic, Gender and Community Vectors simultaneously, requiring a multi-vector response","Only the Institutional Vector","The Climate Vector only"],a:1,e:"A single-vector response to a multi-vector exclusion will always fall short."},
+  {z:6,t:"scenario",p:20,q:"TFZ LEADERSHIP — Your headteacher publicly mocks a student who raised a gender equality concern. Your first action is:",o:["Stay silent","Name the harm privately with the headteacher after assembly, citing the Education Amendment Act 2020","Post about it on social media immediately","Report directly to the Ministry without engaging the headteacher first"],a:1,e:"Name harm at the right level first. Private, evidence-grounded engagement is proportionate and relationship-preserving."},
+  {z:6,t:"mcq",p:10,q:"IEP — Positive Peace links to DEI through:",o:["Absence of violent conflict as the sole peace measure","Equitable distribution of resources and acceptance of rights, building inclusive institutions","Economic growth rates as the primary peace indicator","Military and security sector reform exclusively"],a:1,e:"Every child in school, every community included, is a peace-building act."},
+  {z:6,t:"scenario",p:20,q:"AIIDEV / UNDP — A partner asks you to co-design a youth DEI training for 200 participants across 5 provinces. Your first design decision is:",o:["Use a global DEI curriculum from the internet to save time","Begin with a community needs assessment, grounding the curriculum in local data and lived experience","Hire an international consultant to lead the full design","Focus on urban participants only"],a:1,e:"PGCN's research-first model: community knowledge drives design, not convenience."},
+  {z:6,t:"scenario",p:20,q:"ZOU — Your research confirms girls in Ward 3 miss school during flooding season. Your DEI leadership response is:",o:["Publish the finding and consider it done","Connect research to action: advocate for climate-resilient infrastructure, flexible attendance policies and catch-up programmes","Wait for the government to act","Focus on individual girls' resilience rather than system change"],a:1,e:"Research without action is scholarship without leadership."},
+  {z:6,t:"scenario",p:20,q:"COACHING LEADERSHIP — A junior DEI advocate is frustrated that their advocacy is being ignored. You:",o:["Tell them exactly what to do","Use a coaching framework: ask powerful questions that help them diagnose resistance and design their own next step","Advise them to give up","Focus only on their emotional state"],a:1,e:"Coaching-informed leadership builds capacity, not dependency."},
+  {z:6,t:"scenario",p:20,q:"ORGANISATIONAL DEI — Your organisation's first DEI policy focuses entirely on hiring diversity targets with nothing on inclusion. You:",o:["Accept it, diversity targets are a good start","Advocate to expand the policy: diversity without inclusion is a revolving door, targets need belonging practices and accountability","Reject the entire policy","Focus only on targets"],a:1,e:"Diversity is the input, inclusion is the system."},
+  {z:6,t:"scenario",p:20,q:"INTERSECTIONAL LEADERSHIP — You facilitate a session with a rural female teacher, a male urban professional, a differently-abled youth and a community elder. You open by:",o:["Starting with the most senior person to establish order","Creating a structured space where each lived experience is explicitly valued, naming power dynamics before content begins","Finding common ground and avoiding all discussion of difference","Asking the youngest person to present first as a symbolic gesture"],a:1,e:"Intersectional leadership requires naming and working with power differences from the first moment."},
+  {z:6,t:"mcq",p:10,q:"MBIMB — 'My Body Is My Body' means:",o:["Children can refuse all adult requests","Children have the right to bodily autonomy, name body parts correctly, identify unsafe touch and know they will be believed","Parents own children's bodies until age 16","Only girls need bodily autonomy education"],a:1,e:"Body safety is inseparable from gender equity and child rights."},
+  {z:6,t:"scenario",p:30,q:"BOSS LEVEL — You present RUZIVO to 166 DEI advocates across 37 countries. In 3 minutes, the single most important thing you communicate is:",o:["Explain all the technical features in detail","Demonstrate that RUZIVO is a knowledge journey, practitioner mirror and leadership tool grounded in Zimbabwe's own data and Ward 3's lived experience","Focus on the certificate design and multilingual features","Apologise for any technical limitations"],a:1,e:"The most powerful pitch names the WHY, not the HOW."},
+];
+
+const PRACTITIONER_DIMS=[{id:"diagnostic",label:"Diagnostic Skill",icon:"🔬",color:C.green},{id:"facilitation",label:"Facilitation Confidence",icon:"🎙️",color:C.blue},{id:"child_safety",label:"Child Safety Lens",icon:"🛡️",color:C.gold},{id:"peace",label:"Peace & Systems Thinking",icon:"☮️",color:C.teal},{id:"tools",label:"Tool Application",icon:"🧰",color:C.purple},{id:"courage",label:"Institutional Courage",icon:"⚡",color:C.orange}];
+const PSYCH_Q5=[{dim:"diagnostic",s:"I can identify the worldview or belief beneath an inequitable behaviour before I respond to it."},{dim:"diagnostic",s:"When I observe an unfair outcome, I ask what system produced it, not just who caused it."},{dim:"diagnostic",s:"I can distinguish between a behaviour I see and the mindset that produced it."},{dim:"facilitation",s:"I feel confident holding a difficult conversation about race, gender or power without shutting it down."},{dim:"facilitation",s:"I can sit with silence and discomfort in a group without rushing to resolve it prematurely."},{dim:"facilitation",s:"I know how to re-centre a marginalised voice in a conversation where it has been overlooked."},{dim:"child_safety",s:"I understand that teaching children about bodily autonomy and consent is a protection tool, not just an adult topic."},{dim:"child_safety",s:"I feel equipped to facilitate age-appropriate conversations about personal safety with young people."},{dim:"peace",s:"I can connect a local DEI challenge, such as school dropout, to its broader peace and systems context."},{dim:"peace",s:"I believe building Positive Peace through inclusive institutions is inseparable from DEI work."},{dim:"tools",s:"I have at least three specific tools I can deploy in the moment when I witness or experience inequity."},{dim:"tools",s:"I know the difference between Lack of Safety and Discomfort, and I respond to each differently."},{dim:"tools",s:"I rely on general goodwill rather than specific equity tools when I encounter inequity in practice.",reverse:true},{dim:"courage",s:"I feel equipped to raise a DEI concern within a formal institutional setting."},{dim:"courage",s:"I can advocate for equity even when it is inconvenient, unpopular or risks my standing in the room."}];
+const DIMENSIONS=[{id:"inclusion",label:"Inclusion Mindset",icon:"🤝",color:C.blue},{id:"bias",label:"Bias Awareness",icon:"🔍",color:C.purple},{id:"empathy",label:"Empathy",icon:"❤️",color:C.pink},{id:"ubuntu",label:"Ubuntu / Community",icon:"🌍",color:C.green},{id:"leadership",label:"Leadership Readiness",icon:"🧭",color:C.gold},{id:"action",label:"Action Confidence",icon:"⚡",color:C.red}];
+const PSYCH_Q7=[{dim:"inclusion",s:"I actively create space for people whose perspectives differ from my own."},{dim:"inclusion",s:"I notice when someone is excluded from a conversation or decision, even if I am not directly involved."},{dim:"inclusion",s:"I believe diverse perspectives make decisions and institutions stronger, not just more complicated."},{dim:"bias",s:"I can identify at least one personal bias that has influenced a decision I made this year."},{dim:"bias",s:"I regularly question my first impression of people before acting on it."},{dim:"bias",s:"I don't need to examine my own biases because I treat everyone the same.",reverse:true},{dim:"empathy",s:"I can sit with someone's pain or frustration without rushing to fix or minimise it."},{dim:"empathy",s:"I try to understand a situation from the perspective of the person most affected before forming an opinion."},{dim:"empathy",s:"When someone shares a difficult experience, I notice it affects my own emotions, not just my thinking."},{dim:"ubuntu",s:"I believe my wellbeing is connected to the wellbeing of my community."},{dim:"ubuntu",s:"I see equity work as a collective responsibility rather than an individual achievement."},{dim:"ubuntu",s:"I actively contribute time or resources to support people outside my immediate circle."},{dim:"leadership",s:"I feel equipped to name an inequitable behaviour when I see it, even if it is uncomfortable."},{dim:"leadership",s:"I can distinguish between genuine safety concerns and discomfort in a difficult conversation."},{dim:"leadership",s:"Others come to me when they need guidance on equity or fairness issues."},{dim:"action",s:"I have taken concrete action, not just held an opinion, on a DEI issue in the past 3 months."},{dim:"action",s:"I know what specific next step I would take if I witnessed discrimination in my workplace or school."},{dim:"action",s:"I am confident I can sustain DEI advocacy even when it is met with resistance."}];
+
+function computeProfile(answers,dims,questions){
+  const buckets={};dims.forEach(d=>buckets[d.id]=[]);
+  questions.forEach((q,i)=>{let v=answers[i]||3;if(q.reverse)v=6-v;buckets[q.dim].push(v);});
+  const scores={};dims.forEach(d=>{const a=buckets[d.id];scores[d.id]=Math.round(((a.reduce((x,y)=>x+y,0)/a.length-1)/4)*100);});
+  const overall=Math.round(Object.values(scores).reduce((a,b)=>a+b,0)/dims.length);
+  const strongest=dims.reduce((best,d)=>scores[d.id]>scores[best.id]?d:best,dims[0]);
+  return{scores,overall,strongest};
+}
+function toolkitLevel(o){if(o<40)return{level:"Emerging Practitioner 🌱",desc:"You are building your practitioner foundation, awareness is the first tool.",alp:"Start a 4-week equity reflection journal. Facilitate one structured dialogue circle using the Cycle of Socialisation as your guide."};if(o<65)return{level:"Developing Practitioner 📚",desc:"You have a growing toolkit and are beginning to apply it in real contexts.",alp:"Design and pilot a classroom or community intervention, such as a joint-gender menstrual health session or a Gota-aligned boy child responsibility circle."};if(o<85)return{level:"Skilled Practitioner ⭐",desc:"You deploy equity tools with confidence and facilitate across difference.",alp:"Deploy RUZIVO in your school or ward, train 3–5 peer facilitators and document outcomes as a PGCN evidence contribution."};return{level:"Expert Practitioner 🏆",desc:"You are equipped to train others, design DEI systems and lead institutional change.",alp:"Contribute to a PGCN position paper, propose a curriculum module to MoPSE, or design the Donor Sovereignty Framework at the institutional policy level."};}
+function deiProfileLabel(o){if(o<40)return{profile:"Inclusive Thinker 🌱",tagline:"You are building awareness, the essential first step toward equity practice.",alp:"Keep a bias journal. Attend one community DEI dialogue and practise using Harro's frameworks to understand your own socialisation."};if(o<65)return{profile:"Equity Practitioner 📚",tagline:"You apply DEI knowledge into real, deliberate action.",alp:"Deploy RUZIVO with a community group, document what you learn and bring it back to your PGCN or TFZ network."};if(o<85)return{profile:"Community Change Leader ⭐",tagline:"You lead change within your community and bring others with you.",alp:"Train 5 peer DEI facilitators in your district, contribute a PGCN case study and present at a TFZ or AIIDEV Africa network event."};return{profile:"Systems Transformation Champion 🏆",tagline:"You are positioned to drive systemic, institutional change.",alp:"Contribute to PGCN's Annual State of Gender Equality Report, submit a policy brief to UNDP or ZOU, or design Zimbabwe's first community-led DEI certification framework."};}
+
+function buildCert(name,score,pct,z5P,z7P,best,country,org,role){
+  const W=1200,H=860;const cv=document.createElement('canvas');cv.width=W;cv.height=H;const ctx=cv.getContext('2d');
+  const bg=ctx.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#050e1a');bg.addColorStop(0.5,'#1a3a5c');bg.addColorStop(1,'#0a2015');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='#F5A623';ctx.lineWidth=8;ctx.strokeRect(16,16,W-32,H-32);ctx.strokeStyle='rgba(245,166,35,0.25)';ctx.lineWidth=1;ctx.strokeRect(30,30,W-60,H-60);
+  [[50,50],[W-50,50],[50,H-50],[W-50,H-50]].forEach(([x,y])=>{ctx.beginPath();ctx.arc(x,y,7,0,Math.PI*2);ctx.fillStyle='#F5A623';ctx.fill();});
+  const sx=W-130,sy=130,sr=90;ctx.beginPath();ctx.arc(sx,sy,sr,0,Math.PI*2);ctx.strokeStyle='#F5A623';ctx.lineWidth=3;ctx.stroke();ctx.fillStyle='rgba(245,166,35,0.08)';ctx.fill();ctx.beginPath();ctx.arc(sx,sy,sr-15,0,Math.PI*2);ctx.strokeStyle='rgba(245,166,35,0.35)';ctx.lineWidth=1;ctx.stroke();
+  ctx.save();ctx.translate(sx,sy);'EARTH  GAMING  STANDARDS  INTERNATIONAL'.split('').forEach((ch,i,a)=>{const ang=-Math.PI/2+((2*Math.PI)/a.length)*i;ctx.save();ctx.rotate(ang);ctx.translate(0,-(sr-8));ctx.rotate(Math.PI/2);ctx.font='bold 9px Arial';ctx.fillStyle='#F5A623';ctx.textAlign='center';ctx.fillText(ch,0,0);ctx.restore();});ctx.font='bold 18px Arial';ctx.fillStyle='#F5A623';ctx.textAlign='center';ctx.fillText('EGSI',0,-8);ctx.font='bold 10px Arial';ctx.fillStyle='rgba(245,166,35,0.85)';ctx.fillText('CERTIFIED',0,8);ctx.font='9px Arial';ctx.fillStyle='rgba(245,166,35,0.5)';ctx.fillText('2026',0,23);ctx.restore();
+  ctx.fillStyle='#F5A623';ctx.font='bold 10px Arial';ctx.textAlign='left';ctx.fillText('PEACE, GENDER AND CLIMATE NETWORK  |  PGCN — GAME ARCHITECT',50,62);ctx.fillStyle='rgba(255,255,255,0.3)';ctx.font='9px Arial';ctx.fillText('www.peacegenderandclimatenetwork.com  ·  pgcnglobal@gmail.com',50,78);if(country||org)ctx.fillText(`${country||''}${country&&org?' · ':''}${org||''}${role?' · '+role:''}`,50,93);
+  ctx.textAlign='center';ctx.fillStyle='rgba(255,255,255,0.4)';ctx.font='11px Arial';ctx.fillText('EARTH GAMING STANDARDS INTERNATIONAL CERTIFICATION',W/2,95);ctx.fillStyle='white';ctx.font='bold 38px Georgia';ctx.fillText('Certificate of Completion',W/2,150);ctx.strokeStyle='rgba(245,166,35,0.45)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(200,165);ctx.lineTo(W-200,165);ctx.stroke();ctx.fillStyle='rgba(255,255,255,0.4)';ctx.font='13px Arial';ctx.fillText('RUZIVO DEI Knowledge Challenge',W/2,185);ctx.fillStyle='rgba(255,255,255,0.3)';ctx.font='12px Arial';ctx.fillText('This is to certify that',W/2,232);ctx.fillStyle='#F5A623';ctx.font='bold 50px Georgia';ctx.fillText(name,W/2,296);const nw=ctx.measureText(name).width;ctx.strokeStyle='rgba(245,166,35,0.4)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(W/2-nw/2-20,312);ctx.lineTo(W/2+nw/2+20,312);ctx.stroke();ctx.fillStyle='rgba(255,255,255,0.5)';ctx.font='13px Arial';ctx.fillText('has successfully completed the RUZIVO DEI Knowledge Challenge',W/2,350);ctx.fillText('and demonstrated knowledge, reflection and readiness for inclusive leadership.',W/2,370);
+  const stats=[{l:'SCORE',v:score+' pts',c:'#4A90D9'},{l:'ACCURACY',v:pct+'%',c:'#27AE60'},{l:'PRACTITIONER',v:z5P?(z5P.level||'').replace(/[^\w\s]/g,'').trim().split(' ').slice(0,2).join(' '):'—',c:'#27AE60'},{l:'DEI PROFILE',v:z7P?(z7P.profile||'').replace(/[^\w\s]/g,'').trim().split(' ').slice(0,2).join(' '):'—',c:'#16A085'}];
+  const bw=222,bh=62,bG=18,tBW=stats.length*(bw+bG)-bG,bSX=(W-tBW)/2;stats.forEach((s,i)=>{const bx=bSX+i*(bw+bG),by=400;ctx.fillStyle='rgba(255,255,255,0.04)';ctx.fillRect(bx,by,bw,bh);ctx.strokeStyle=s.c+'55';ctx.lineWidth=1;ctx.strokeRect(bx,by,bw,bh);ctx.fillStyle=s.c;ctx.font='bold 19px Arial';ctx.textAlign='center';ctx.fillText(s.v,bx+bw/2,by+26);ctx.fillStyle='rgba(255,255,255,0.3)';ctx.font='9px Arial';ctx.fillText(s.l,bx+bw/2,by+45);});
+  ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(80,495);ctx.lineTo(W-80,495);ctx.stroke();ctx.fillStyle='rgba(245,166,35,0.7)';ctx.font='bold 10px Arial';ctx.textAlign='center';ctx.fillText('EGSI CERTIFICATION STATEMENT',W/2,518);ctx.fillStyle='rgba(255,255,255,0.32)';ctx.font='11px Arial';ctx.fillText('This certificate is issued under the Earth Gaming Standards International (EGSI) framework,',W/2,538);ctx.fillText('an educational gaming quality standard developed and administered by the Peace, Gender and Climate Network (PGCN), Game Architect.',W/2,555);
+  const tags=['SDG 5','SDG 13','SDG 16','Agenda 2063','2030 Agenda','TFA','TFZ','AIIDEV Africa','UNDP','ZOU','MBIMB','IEP'];ctx.font='bold 9px Arial';let tx=80,ty=578;tags.forEach(tag=>{const tw=ctx.measureText(tag).width+16;if(tx+tw>W-80){tx=80;ty+=22;}ctx.fillStyle='rgba(255,255,255,0.05)';ctx.fillRect(tx,ty,tw,17);ctx.fillStyle='rgba(255,255,255,0.32)';ctx.textAlign='center';ctx.fillText(tag,tx+tw/2,ty+11);tx+=tw+5;});
+  const sigY=720;ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(90,sigY);ctx.lineTo(380,sigY);ctx.stroke();ctx.fillStyle='rgba(255,255,255,0.65)';ctx.font='bold 11px Arial';ctx.textAlign='center';ctx.fillText('Kingdom Gwangwava',235,sigY+18);ctx.fillStyle='#F5A623';ctx.font='10px Arial';ctx.fillText('Founder & Executive Director',235,sigY+34);ctx.fillStyle='rgba(255,255,255,0.32)';ctx.font='9px Arial';ctx.fillText('Peace, Gender and Climate Network',235,sigY+48);ctx.fillText('PGCN | Game Architect',235,sigY+60);ctx.fillText('pgcnglobal@gmail.com',235,sigY+74);
+  const d=new Date();ctx.fillStyle='rgba(255,255,255,0.22)';ctx.font='10px Arial';ctx.textAlign='center';ctx.fillText('Date of Issue',W/2,sigY+10);ctx.fillStyle='rgba(255,255,255,0.55)';ctx.font='bold 12px Arial';ctx.fillText(d.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}),W/2,sigY+28);ctx.fillStyle='rgba(245,166,35,0.5)';ctx.font='bold 15px Arial';ctx.fillText('[ EGSI ]',W/2,sigY+50);
+  ctx.beginPath();ctx.moveTo(820,sigY);ctx.lineTo(1110,sigY);ctx.stroke();ctx.fillStyle='rgba(255,255,255,0.65)';ctx.font='bold 11px Arial';ctx.textAlign='center';ctx.fillText('EGSI Certification Board',965,sigY+18);ctx.fillStyle='#F5A623';ctx.font='10px Arial';ctx.fillText('Earth Gaming Standards International',965,sigY+34);ctx.fillStyle='rgba(255,255,255,0.32)';ctx.font='9px Arial';ctx.fillText('Quality Assurance | Educational Gaming',965,sigY+48);ctx.fillText('www.peacegenderandclimatenetwork.com',965,sigY+60);
+  ctx.fillStyle='rgba(255,255,255,0.12)';ctx.font='9px Arial';ctx.textAlign='center';ctx.fillText('Create  |  Initiate  |  Innovate  |  Leaving No One Behind',W/2,830);
+  return cv;
+}
+
+function useSound(){
+  const ctx=useRef(null);
+  const getCtx=()=>{if(!ctx.current)ctx.current=new(window.AudioContext||window.webkitAudioContext)();return ctx.current;};
+  return useCallback((type)=>{
+    try{const ac=getCtx();const notes=type==="correct"?[[0,523],[0.1,659],[0.2,784]]:type==="wrong"?[[0,220],[0.13,180]]:type==="tick"?[[0,440]]:type==="boss"?[[0,80],[0.15,60],[0.3,100],[0.5,80]]:type==="celebrate"?[[0,523],[0.08,659],[0.16,784],[0.24,1047],[0.32,1319],[0.42,1047]]:type==="timesup"?[[0,300],[0.1,250],[0.2,200]]:[[0,523],[0.12,659],[0.24,784],[0.36,1047],[0.5,1319]];notes.forEach(([t,f])=>{const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=f;o.type=type==="wrong"||type==="boss"||type==="timesup"?"sawtooth":"sine";g.gain.setValueAtTime(type==="boss"?0.25:0.15,ac.currentTime+t);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+t+0.3);o.start(ac.currentTime+t);o.stop(ac.currentTime+t+0.35);});}catch(e){}
+  },[]);
+}
+
+async function translateQ(qObj,targetLang){
+  const langNames={es:"Spanish",fr:"French",pt:"Portuguese",sn:"chiShona (the Shona language of Zimbabwe, use natural Shona vocabulary and phrasing familiar to Zimbabwean speakers)"};
+  const langName=langNames[targetLang];
+  const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:900,messages:[{role:"user",content:`Translate this DEI quiz content into ${langName}. Return ONLY valid JSON, no markdown. Keep proper nouns (PGCN,Ubuntu,Hunhu,Zimbabwe,BEAM,SADC,SDG,Nehanda,BaTonga,Africana Womanism,Bobbie Harro,ILO,UNICEF,Ward 3,Chivi,RUZIVO,Kingdom Gwangwava,TFZ,AIIDEV,UNDP,ZOU,MBIMB,IEP,BOSS LEVEL) unchanged. JSON format: {"q":"...","o":["...","...","...","..."],"e":"..."}\n\nInput: ${JSON.stringify({question:qObj.q,options:qObj.o,explanation:qObj.e})}`}]})});
+  const data=await res.json();
+  return JSON.parse((data.content?.[0]?.text||"{}").replace(/```json|```/g,"").trim());
+}
+
+const LANGS=[{code:"en",label:"EN"},{code:"es",label:"ES"},{code:"fr",label:"FR"},{code:"pt",label:"PT"},{code:"sn",label:"SN"}];
+
+const Confetti=()=>{
+  const items=useRef(Array.from({length:45},(_,i)=>({id:i,left:Math.random()*100,delay:Math.random()*0.8,dur:1.4+Math.random()*1.2,color:[C.gold,C.blue,C.green,C.purple,C.pink,C.teal,C.red][Math.floor(Math.random()*7)],size:6+Math.random()*6,round:Math.random()>0.5})));
+  return(<div style={{position:"fixed",top:0,left:0,width:"100%",height:"100%",pointerEvents:"none",overflow:"hidden",zIndex:200}}>{items.current.map(p=><div key={p.id} style={{position:"absolute",left:`${p.left}%`,top:"-12px",width:p.size,height:p.size,borderRadius:p.round?"50%":"2px",background:p.color,animation:`cFall ${p.dur}s ${p.delay}s ease-in forwards`}}/>)}<style>{`@keyframes cFall{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}`}</style></div>);
+};
+
+export default function Ruzivo(){
+  const [screen,setScreen]=useState("intro");
+  const [lang,setLang]=useState("en");
+  const [name,setName]=useState("");const [nameInput,setNameInput]=useState("");
+  const [country,setCountry]=useState("");const [org,setOrg]=useState("");const [role,setRole]=useState("");
+  const [zone,setZone]=useState(1);const [zoneQs,setZoneQs]=useState([]);const [qIdx,setQIdx]=useState(0);
+  const [score,setScore]=useState(0);const [lives,setLives]=useState(3);
+  const [sel,setSel]=useState(null);const [shown,setShown]=useState(false);
+  const [done,setDone]=useState([]);const [hits,setHits]=useState(0);
+  const [streak,setStreak]=useState(0);const [best,setBest]=useState(0);
+  const [zStart,setZStart]=useState(0);const [zScores,setZScores]=useState({});
+  const [tapLogo,setTapLogo]=useState(0);const [adminPIN,setAdminPIN]=useState("");
+  const [mute,setMute]=useState(false);const [audioRead,setAudioRead]=useState(false);
+  const [txCache,setTxCache]=useState({});const [txLoading,setTxLoading]=useState(false);const [displayQ,setDisplayQ]=useState(null);
+  const [z5Idx,setZ5Idx]=useState(0);const [z5Ans,setZ5Ans]=useState([]);const [z5Profile,setZ5Profile]=useState(null);
+  const [z7Idx,setZ7Idx]=useState(0);const [z7Ans,setZ7Ans]=useState([]);const [z7Profile,setZ7Profile]=useState(null);
+  const [conceptZone,setConceptZone]=useState(null);
+  const [certLoading,setCertLoading]=useState(false);
+  const [mePlayers,setMePlayers]=useState([]);const [meLoading,setMeLoading]=useState(false);
+  const [zoneCompleteData,setZoneCompleteData]=useState(null);
+  const [streakBurst,setStreakBurst]=useState(null);
+  const [hintUsed,setHintUsed]=useState(false);const [hintText,setHintText]=useState("");
+  const [barsReady,setBarsReady]=useState(false);
+  const [timeLeft,setTimeLeft]=useState(30);const [timedOut,setTimedOut]=useState(false);
+  const [wrongAnswers,setWrongAnswers]=useState([]);
+  const timerRef=useRef(null);
+  const picking=useRef(false);
+  const play=useSound();
+  const sound=(t)=>{if(!mute)play(t);};
+
+  const speak=useCallback((text)=>{if(!audioRead||!('speechSynthesis' in window))return;window.speechSynthesis.cancel();const utt=new SpeechSynthesisUtterance(text);const lm={en:'en-GB',es:'es-ES',fr:'fr-FR',pt:'pt-BR',sn:'en-GB'};utt.lang=lm[lang]||'en-GB';utt.rate=0.88;utt.pitch=1;window.speechSynthesis.speak(utt);},[audioRead,lang]);
+
+  const u=UI[lang]||UI.en;
+  const cur=zoneQs[qIdx];
+  const total=Q.length;
+  const adminOk=adminPIN==="PGCN2026";
+  const isBoss=cur?.p>=30;
+  const pct=Math.round((hits/total)*100);
+  const zData=ZONES.find(z2=>z2.id===zone);
+  const needsTx=["es","fr","pt","sn"].includes(lang);
+  const cacheKey=cur?`${lang}_${zone}_${qIdx}`:null;
+
+  useEffect(()=>{
+    if(screen!=='game'||shown||!displayQ){clearInterval(timerRef.current);return;}
+    clearInterval(timerRef.current);setTimeLeft(30);setTimedOut(false);
+    timerRef.current=setInterval(()=>setTimeLeft(t=>Math.max(0,t-1)),1000);
+    return()=>clearInterval(timerRef.current);
+  },[displayQ,screen,shown]);
+
+  useEffect(()=>{
+    if(timeLeft===0&&screen==='game'&&!shown&&displayQ&&!picking.current){
+      clearInterval(timerRef.current);picking.current=true;setShown(true);setTimedOut(true);
+      setLives(l=>Math.max(0,l-1));setStreak(0);sound("timesup");
+      const opts2=displayQ?.o||cur?.o||[];const corr=cur?.t==="tf"?(cur.a?"TRUE ✓":"FALSE ✗"):opts2[cur?.a]||"";
+      setWrongAnswers(w=>[...w,{q:displayQ?.q||'',correct:corr,your:u.timesUp,exp:displayQ?.e||cur?.e||''}]);
+    }
+  },[timeLeft,screen,shown,displayQ]);
+
+  useEffect(()=>{if(displayQ&&screen==='game'&&audioRead)speak(displayQ.q);},[displayQ,audioRead]);
+  useEffect(()=>{if(screen==='toolkit'&&audioRead)speak(PSYCH_Q5[z5Idx]?.s||'');},[z5Idx,screen,audioRead]);
+  useEffect(()=>{if(screen==='psychometric'&&audioRead)speak(PSYCH_Q7[z7Idx]?.s||'');},[z7Idx,screen,audioRead]);
+  useEffect(()=>{if(screen==='report'){setBarsReady(false);setTimeout(()=>setBarsReady(true),500);}else{window.speechSynthesis?.cancel();};},[screen]);
+
+  useEffect(()=>{
+    if(!cur||screen!=='game')return;
+    if(!needsTx){setDisplayQ(cur);return;}
+    if(txCache[cacheKey]){setDisplayQ({...cur,...txCache[cacheKey]});return;}
+    setTxLoading(true);setDisplayQ(null);
+    translateQ(cur,lang).then(tx=>{setTxCache(c=>({...c,[cacheKey]:tx}));setDisplayQ({...cur,...tx});setTxLoading(false);}).catch(()=>{setDisplayQ(cur);setTxLoading(false);});
+  },[lang,cur,screen,cacheKey,needsTx]);
+
+  const isOk=()=>{if(!shown||sel===null||!displayQ)return null;return cur.t==="tf"?(sel===0)===cur.a:sel===cur.a;};
+
+  const pick=(i)=>{
+    if(shown||picking.current||!displayQ)return;
+    clearInterval(timerRef.current);picking.current=true;setSel(i);setShown(true);setTimedOut(false);
+    const opts2=displayQ?.o||cur?.o||[];
+    const ok=cur.t==="tf"?(i===0)===cur.a:i===cur.a;
+    if(ok){
+      const b=streak>=2?5:0;setScore(s=>s+cur.p+b);setHits(h=>h+1);
+      const ns=streak+1;setBest(b2=>Math.max(b2,ns));setStreak(ns);
+      sound(isBoss?"celebrate":"correct");
+      if(ns===3||ns===5||ns===10){setStreakBurst(ns);setTimeout(()=>setStreakBurst(null),2200);}
+      setTimeout(()=>speak((displayQ?.e||cur.e)||''),600);
+    }else{
+      setLives(l=>Math.max(0,l-1));setStreak(0);sound("wrong");
+      const corr=cur.t==="tf"?(cur.a?"TRUE ✓":"FALSE ✗"):opts2[cur.a]||"";
+      const yours=opts2[i]||"";
+      setWrongAnswers(w=>[...w,{q:displayQ?.q||cur.q,correct:corr,your:yours,exp:displayQ?.e||cur.e}]);
+      setTimeout(()=>speak((displayQ?.e||cur.e)||''),600);
+    }
+  };
+
+  const nextQ=()=>{
+    clearInterval(timerRef.current);picking.current=false;setHintUsed(false);setHintText("");
+    if(qIdx+1<zoneQs.length){setQIdx(q=>q+1);setSel(null);setShown(false);setDisplayQ(null);setTimedOut(false);}
+    else{
+      const earned=score-zStart;setZScores(z=>({...z,[zone]:earned}));
+      setZoneCompleteData({zoneId:zone,score:earned});
+      sound("celebrate");
+      if(wrongAnswers.length>0){setScreen("wrongreview");}else{setScreen("zonecomplete");}
+    }
+  };
+
+  const useHint=()=>{if(hintUsed||!displayQ)return;setHintUsed(true);setScore(s=>Math.max(0,s-5));const hint=(displayQ.e||cur.e||'').split('.')[0]+'...';setHintText(hint);speak(hint);};
+
+  const launchZone=(zId)=>{
+    const zInfo=ZONES.find(z=>z.id===zId);
+    setWrongAnswers([]);
+    if(zInfo?.type==="toolkit"){setZ5Idx(0);setZ5Ans([]);picking.current=false;setScreen("toolkit");}
+    else{const qs=shuffle(Q.filter(q=>q.z===zId));setZone(zId);setZoneQs(qs);setQIdx(0);setSel(null);setShown(false);setDisplayQ(null);setHintUsed(false);setHintText("");setTimedOut(false);setZStart(score);setScreen("game");}
+  };
+
+  const startZone=(zId)=>{
+    const zInfo=ZONES.find(z=>z.id===zId);
+    if(zInfo?.type==="psychometric"){setZ7Idx(0);setZ7Ans([]);picking.current=false;setScreen("psychometric");}
+    else{setConceptZone(zId);setScreen("concept");}
+  };
+
+  const pickLikert=(val,type)=>{
+    if(picking.current)return;picking.current=true;sound("tick");
+    if(type==="toolkit"){
+      const next=[...z5Ans];next[z5Idx]=val;setZ5Ans(next);
+      setTimeout(()=>{picking.current=false;if(z5Idx+1<PSYCH_Q5.length){setZ5Idx(p=>p+1);}else{const r=computeProfile(next,PRACTITIONER_DIMS,PSYCH_Q5);const tl=toolkitLevel(r.overall);setZ5Profile({...r,...tl});setDone(d=>d.includes(5)?d:[...d,5]);sound("celebrate");setScreen("map");}},250);
+    }else{
+      const next=[...z7Ans];next[z7Idx]=val;setZ7Ans(next);
+      setTimeout(()=>{picking.current=false;if(z7Idx+1<PSYCH_Q7.length){setZ7Idx(p=>p+1);}else{const r=computeProfile(next,DIMENSIONS,PSYCH_Q7);const dl=deiProfileLabel(r.overall);const prof={...r,...dl};setZ7Profile(prof);setDone(d=>d.includes(7)?d:[...d,7]);savePlayer(prof);sound("celebrate");setScreen("report");}},250);
+    }
+  };
+
+  const savePlayer=async(deiProf)=>{try{const data={name,country,org,role,lang,score,pct:Math.round((hits/total)*100),deiProfile:deiProf?.profile||'—',practitionerLevel:z5Profile?.level||'—',zonesCompleted:done.length+2,timestamp:new Date().toISOString()};await window.storage.set(`ruzivo:${Date.now()}`,JSON.stringify(data),true);}catch(e){}};
+
+  const loadME=async()=>{setMeLoading(true);try{const keys=await window.storage.list('ruzivo:',true);const players=await Promise.all((keys.keys||[]).map(async k=>{try{const r=await window.storage.get(k,true);return r?JSON.parse(r.value):null;}catch(e){return null;}}));setMePlayers(players.filter(Boolean).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)));}catch(e){setMePlayers([]);}setMeLoading(false);};
+
+  const bg={minHeight:"100vh",background:`linear-gradient(160deg,#050e1a 0%,${C.mid} 55%,#0a2015 100%)`};
+
+  const LangBar=()=>(
+    <div style={{display:"flex",gap:4,alignItems:"center",flexWrap:"wrap"}}>
+      <button onClick={()=>setMute(m=>!m)} style={{background:"none",border:"none",cursor:"pointer",fontSize:12,opacity:0.5}}>{mute?"🔇":"🔊"}</button>
+      <button onClick={()=>{setAudioRead(r=>!r);if(!audioRead)window.speechSynthesis?.cancel();}} title="Read aloud" style={{background:audioRead?C.gold+"33":"none",border:audioRead?`1px solid ${C.gold}55`:"none",borderRadius:8,padding:"1px 5px",cursor:"pointer",fontSize:12,opacity:audioRead?1:0.4}}>🗣️</button>
+      {LANGS.map(l=><button key={l.code} onClick={()=>setLang(l.code)} style={{padding:"3px 7px",borderRadius:20,fontSize:10,fontWeight:"bold",background:lang===l.code?C.gold:"rgba(255,255,255,0.1)",color:lang===l.code?"#000":"rgba(255,255,255,0.5)",border:"none",cursor:"pointer"}}>{l.label}</button>)}
+    </div>
+  );
+
+  const resetAll=()=>{setScore(0);setLives(3);setDone([]);setHits(0);setStreak(0);setBest(0);setZScores({});setZ5Profile(null);setZ7Profile(null);setCertLoading(false);setBarsReady(false);setZoneQs([]);setWrongAnswers([]);clearInterval(timerRef.current);};
+
+  if(screen==="intro")return(
+    <div style={{...bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"20px 16px"}}>
+      <div style={{position:"absolute",top:14,right:14}}><LangBar/></div>
+      <div style={{maxWidth:420,width:"100%",textAlign:"center"}}>
+        <div onClick={()=>setTapLogo(t=>t+1)} style={{fontSize:50,marginBottom:5,userSelect:"none"}}>🌍</div>
+        <p style={{color:C.gold,fontSize:9,letterSpacing:"0.22em",textTransform:"uppercase",marginBottom:3}}>Peace, Gender and Climate Network</p>
+        <h1 style={{color:"white",fontSize:46,fontWeight:900,margin:"0 0 2px",letterSpacing:4}}>RUZIVO</h1>
+        <p style={{color:"rgba(255,255,255,0.45)",fontSize:12,marginBottom:3}}>DEI Knowledge Challenge</p>
+        <p style={{color:"rgba(255,255,255,0.2)",fontSize:9,marginBottom:3}}>Teach For All · PGCN · TFZ · AIIDEV · ZOU · MBIMB · IEP · UNDP · 2026</p>
+        <p style={{color:C.gold,fontSize:9,fontWeight:"bold",marginBottom:10}}>⬡ EGSI CERTIFIED</p>
+        {tapLogo>=5&&(
+          <div style={{marginBottom:10,padding:12,borderRadius:12,background:"rgba(0,0,0,0.5)",border:`1px solid ${C.gold}44`}}>
+            <p style={{color:C.gold,fontSize:10,marginBottom:5}}>🔐 Admin PIN</p>
+            <input value={adminPIN} onChange={e=>setAdminPIN(e.target.value)} placeholder="PGCN2026" style={{width:"100%",padding:"7px 10px",borderRadius:8,background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.15)",color:"white",fontSize:12,textAlign:"center",boxSizing:"border-box"}}/>
+            {adminOk&&<div style={{display:"flex",gap:6,marginTop:6,justifyContent:"center"}}>
+              <button onClick={()=>{loadME();setScreen("me");}} style={{padding:"6px 12px",borderRadius:8,background:C.teal,color:"white",fontWeight:"bold",fontSize:10,border:"none",cursor:"pointer"}}>📊 M&E</button>
+              <button onClick={()=>{loadME();setScreen("leaderboard");}} style={{padding:"6px 12px",borderRadius:8,background:C.gold,color:"#000",fontWeight:"bold",fontSize:10,border:"none",cursor:"pointer"}}>🏆 Leaderboard</button>
+            </div>}
+          </div>
+        )}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:5,marginBottom:10}}>
+          {ZONES.map(z=><div key={z.id} style={{borderRadius:9,padding:"7px 3px",background:z.color+"15",border:`1px solid ${z.color}33`,textAlign:"center"}}><div style={{fontSize:14}}>{z.icon}</div><p style={{color:z.color,fontSize:7,fontWeight:"bold",marginTop:2}}>{z.tag}</p></div>)}
+        </div>
+        <div style={{borderRadius:12,padding:9,marginBottom:9,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)"}}>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:5}}>
+            {[{i:"📖",l:"Learn First",c:C.blue},{i:"⏱️",l:"30s Timer",c:C.orange},{i:"🔍",l:"Review Missed",c:C.purple},{i:"🏆",l:"Leaderboard",c:C.gold}].map((it,i)=>
+              <div key={i} style={{textAlign:"center"}}><p style={{fontSize:14}}>{it.i}</p><p style={{color:it.c,fontSize:7,fontWeight:"bold",lineHeight:1.3,marginTop:1}}>{it.l}</p></div>
+            )}
+          </div>
+        </div>
+        <input value={nameInput} onChange={e=>setNameInput(e.target.value)} placeholder={u.name} style={{width:"100%",padding:"12px",borderRadius:12,background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.15)",color:"white",fontSize:14,textAlign:"center",marginBottom:8,boxSizing:"border-box"}}/>
+        <button onClick={()=>{if(nameInput.trim()){setName(nameInput.trim());setScreen("register");}}} style={{width:"100%",padding:"12px",borderRadius:12,background:C.gold,color:"#000",fontWeight:900,fontSize:14,border:"none",cursor:"pointer"}}>{u.begin}</button>
+        <div style={{borderRadius:10,padding:"7px 12px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",marginTop:8}}>
+          <p style={{color:"rgba(255,255,255,0.4)",fontSize:8,fontWeight:"bold",marginBottom:1}}>📞 Kingdom Gwangwava · PGCN</p>
+          <p style={{color:C.gold,fontSize:8}}>pgcnglobal@gmail.com</p>
+        </div>
+        <p style={{color:"rgba(255,255,255,0.12)",fontSize:9,marginTop:6}}>Create · Initiate · Innovate · Leaving No One Behind</p>
+      </div>
+    </div>
+  );
+
+  if(screen==="register")return(
+    <div style={{...bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"20px 16px"}}>
+      <div style={{maxWidth:420,width:"100%"}}>
+        <div style={{textAlign:"center",marginBottom:14}}>
+          <p style={{color:C.gold,fontSize:22}}>👋</p>
+          <p style={{color:C.gold,fontSize:10,letterSpacing:"0.15em",textTransform:"uppercase",marginBottom:2}}>Welcome, {name}</p>
+          <h2 style={{color:"white",fontWeight:900,fontSize:17,marginBottom:3}}>{u.register}</h2>
+          <p style={{color:"rgba(255,255,255,0.35)",fontSize:10}}>This helps PGCN track reach and impact across contexts.</p>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          <div><p style={{color:"rgba(255,255,255,0.5)",fontSize:10,marginBottom:3}}>{u.country} *</p><input value={country} onChange={e=>setCountry(e.target.value)} placeholder="e.g. Zimbabwe, Bolivia, France..." style={{width:"100%",padding:"11px 12px",borderRadius:10,background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.15)",color:"white",fontSize:12,boxSizing:"border-box"}}/></div>
+          <div><p style={{color:"rgba(255,255,255,0.5)",fontSize:10,marginBottom:3}}>{u.org}</p><select value={org} onChange={e=>setOrg(e.target.value)} style={{width:"100%",padding:"11px 12px",borderRadius:10,background:"#1a3a5c",border:"1px solid rgba(255,255,255,0.15)",color:org?"white":"rgba(255,255,255,0.4)",fontSize:12,boxSizing:"border-box"}}><option value="">Select organisation...</option>{ORGS.map(o=><option key={o} value={o}>{o}</option>)}</select></div>
+          <div><p style={{color:"rgba(255,255,255,0.5)",fontSize:10,marginBottom:3}}>{u.role}</p><select value={role} onChange={e=>setRole(e.target.value)} style={{width:"100%",padding:"11px 12px",borderRadius:10,background:"#1a3a5c",border:"1px solid rgba(255,255,255,0.15)",color:role?"white":"rgba(255,255,255,0.4)",fontSize:12,boxSizing:"border-box"}}><option value="">Select role...</option>{ROLES.map(r=><option key={r} value={r}>{r}</option>)}</select></div>
+        </div>
+        <button onClick={()=>setScreen("map")} disabled={!country.trim()} style={{width:"100%",marginTop:14,padding:"12px",borderRadius:12,background:country.trim()?C.gold:"rgba(255,255,255,0.1)",color:country.trim()?"#000":"rgba(255,255,255,0.3)",fontWeight:900,fontSize:14,border:"none",cursor:country.trim()?"pointer":"default"}}>{u.begin}</button>
+        <button onClick={()=>setScreen("map")} style={{width:"100%",marginTop:5,padding:"8px",borderRadius:10,background:"none",color:"rgba(255,255,255,0.3)",fontSize:11,border:"none",cursor:"pointer"}}>Skip registration →</button>
+      </div>
+    </div>
+  );
+
+  if(screen==="concept"&&conceptZone){
+    const zInfo=ZONES.find(z=>z.id===conceptZone);
+    const concepts=ZONE_CONCEPTS[conceptZone]?.concepts||[];
+    return(
+      <div style={{...bg,display:"flex",flexDirection:"column"}}>
+        <div style={{padding:"14px 16px 0",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div><p style={{color:zInfo.color,fontSize:10,fontWeight:"bold"}}>{zInfo.icon} {zInfo.names[lang]||zInfo.names.en}</p><p style={{color:"rgba(255,255,255,0.3)",fontSize:9}}>{u.keyLearning}</p></div>
+          <LangBar/>
+        </div>
+        <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center",padding:"12px 18px"}}>
+          <div style={{textAlign:"center",marginBottom:12}}>
+            <p style={{fontSize:28,marginBottom:4}}>{zInfo.icon}</p>
+            <h2 style={{color:"white",fontWeight:900,fontSize:17,marginBottom:3}}>{zInfo.names[lang]||zInfo.names.en}</h2>
+            <p style={{color:zInfo.color,fontSize:9}}>{zInfo.sub}</p>
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:9}}>
+            {concepts.map((c,i)=>(
+              <div key={i} style={{borderRadius:13,padding:13,background:`linear-gradient(135deg,${zInfo.color}14,${zInfo.color}06)`,border:`1px solid ${zInfo.color}35`}}>
+                <p style={{color:zInfo.color,fontWeight:"bold",fontSize:11,marginBottom:4}}>💡 {c.k}</p>
+                <p style={{color:"rgba(255,255,255,0.75)",fontSize:11,lineHeight:1.65}}>{c.v}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div style={{padding:"10px 16px 22px",display:"flex",flexDirection:"column",gap:6}}>
+          <button onClick={()=>launchZone(conceptZone)} style={{width:"100%",padding:"13px",borderRadius:12,background:zInfo.color,color:"#000",fontWeight:900,fontSize:14,border:"none",cursor:"pointer"}}>{u.startZone}</button>
+          <button onClick={()=>launchZone(conceptZone)} style={{background:"none",border:"none",color:"rgba(255,255,255,0.3)",fontSize:11,cursor:"pointer"}}>{u.skipConcept}</button>
+        </div>
+      </div>
+    );
+  }
+
+  if(screen==="map"){
+    const allKnDone=[1,2,3,4,5,6].every(id=>done.includes(id));
+    return(
+    <div style={{...bg,padding:"14px 14px 32px"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+        <div>
+          <p style={{color:C.gold,fontSize:9,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:1}}>RUZIVO · {name}</p>
+          <p style={{color:"white",fontWeight:900,fontSize:22}}>{score} pts</p>
+          <p style={{color:"rgba(255,255,255,0.35)",fontSize:10}}>{hits}/{total} correct {country&&`· ${country}`}</p>
+        </div>
+        <div style={{textAlign:"right"}}>
+          <div style={{marginBottom:4}}><LangBar/></div>
+          <p style={{fontSize:17}}>{lives>0?Array(Math.max(0,lives)).fill("❤️").join(""):"💀"}</p>
+          <button onClick={async()=>{await loadME();setScreen("leaderboard");}} style={{marginTop:4,padding:"4px 10px",borderRadius:10,background:C.gold+"22",border:`1px solid ${C.gold}44`,color:C.gold,fontSize:9,fontWeight:"bold",cursor:"pointer"}}>🏆 Leaderboard</button>
+        </div>
+      </div>
+      <p style={{color:"white",fontWeight:"bold",fontSize:15,marginBottom:8}}>{u.map}</p>
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        {ZONES.map((z,i)=>{
+          const isDone=done.includes(z.id);const isLocked=!adminOk&&i>0&&!done.includes(z.id-1);const isActive=!isDone&&!isLocked;const isSpecial=z.type==="toolkit"||z.type==="psychometric";
+          return(
+            <button key={z.id} onClick={()=>isActive&&startZone(z.id)} disabled={isDone||isLocked}
+              style={{borderRadius:14,padding:"11px 13px",display:"flex",alignItems:"center",gap:11,background:isDone?z.color+"22":isActive?z.color+"12":"rgba(255,255,255,0.03)",border:`2px solid ${isDone?z.color:isActive?z.color+"55":"rgba(255,255,255,0.05)"}`,opacity:isLocked?0.3:1,cursor:isActive?"pointer":"default"}}>
+              <div style={{width:42,height:42,borderRadius:11,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,background:z.color+"22",flexShrink:0}}>{isDone?"✅":isLocked?"🔒":z.icon}</div>
+              <div style={{flex:1,textAlign:"left"}}>
+                <p style={{color:z.color,fontSize:9,fontWeight:"bold",letterSpacing:"0.07em",marginBottom:1}}>Zone {z.id} · {z.tag}{isSpecial?" · No Right/Wrong":""}</p>
+                <p style={{color:"white",fontWeight:"bold",fontSize:12,marginBottom:1}}>{z.names[lang]||z.names.en}</p>
+                <p style={{color:"rgba(255,255,255,0.3)",fontSize:9}}>{z.sub}</p>
+              </div>
+              <div style={{textAlign:"right",flexShrink:0}}>
+                {isDone&&<p style={{color:z.color,fontWeight:"bold",fontSize:11}}>{!isSpecial?`+${zScores[z.id]||0}pts`:"✓"}</p>}
+                {isActive&&<p style={{color:z.color,fontSize:10,fontWeight:"bold"}}>START →</p>}
+                <p style={{color:"rgba(255,255,255,0.2)",fontSize:9}}>{!isSpecial?`${Q.filter(q=>q.z===z.id).length} Qs`:z.id===5?`${PSYCH_Q5.length} items`:`${PSYCH_Q7.length} items`}</p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+      {allKnDone&&<button onClick={()=>startZone(7)} style={{width:"100%",marginTop:12,padding:13,borderRadius:14,background:C.gold,color:"#000",fontWeight:900,fontSize:14,border:"none",cursor:"pointer"}}>🧭 Complete DEI Profile → View Final Report</button>}
+      {done.includes(7)&&<button onClick={()=>setScreen("report")} style={{width:"100%",marginTop:8,padding:12,borderRadius:14,background:C.teal,color:"white",fontWeight:900,fontSize:13,border:"none",cursor:"pointer"}}>{u.claim}</button>}
+      {lives===0&&!allKnDone&&<div style={{marginTop:12,padding:12,borderRadius:12,background:"#c0392b18",border:"1px solid #c0392b55",textAlign:"center"}}><p style={{color:"white",fontWeight:"bold",marginBottom:7}}>{u.noLives}</p><button onClick={()=>{resetAll();}} style={{padding:"7px 18px",borderRadius:9,background:C.gold,color:"#000",fontWeight:"bold",border:"none",cursor:"pointer"}}>{u.restart}</button></div>}
+      <p style={{color:"rgba(255,255,255,0.1)",fontSize:8,textAlign:"center",marginTop:10}}>PGCN · EGSI Certified · pgcnglobal@gmail.com</p>
+    </div>
+  );}
+
+  if(screen==="zonecomplete"&&zoneCompleteData){
+    const z=ZONES.find(z2=>z2.id===zoneCompleteData.zoneId);
+    return(
+      <div style={{...bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px 16px",position:"relative",overflow:"hidden"}}>
+        <Confetti/>
+        <div style={{textAlign:"center",maxWidth:360,zIndex:10}}>
+          <div style={{fontSize:60,marginBottom:10}}>{z.icon}</div>
+          <p style={{color:z.color,fontSize:10,fontWeight:"bold",letterSpacing:"0.15em",textTransform:"uppercase",marginBottom:4}}>Zone {z.id} · {z.tag}</p>
+          <h2 style={{color:"white",fontWeight:900,fontSize:26,marginBottom:6}}>{u.zoneComplete}</h2>
+          <p style={{color:"rgba(255,255,255,0.6)",fontSize:13,marginBottom:14}}>{z.names[lang]||z.names.en}</p>
+          <div style={{borderRadius:18,padding:"16px 28px",background:z.color+"25",border:`2px solid ${z.color}`,marginBottom:10,display:"inline-block"}}>
+            <p style={{color:z.color,fontSize:44,fontWeight:900,lineHeight:1}}>+{zoneCompleteData.score}</p>
+            <p style={{color:"rgba(255,255,255,0.5)",fontSize:11,marginTop:3}}>pts earned</p>
+          </div>
+          <p style={{color:"rgba(255,255,255,0.4)",fontSize:11,marginBottom:16}}>{score} pts total · {hits}/{total} correct overall</p>
+          <button onClick={()=>{setDone(d=>[...d,zoneCompleteData.zoneId]);setZoneCompleteData(null);setScreen("map");}} style={{width:"100%",padding:"14px",borderRadius:14,background:z.color,color:"#000",fontWeight:900,fontSize:15,border:"none",cursor:"pointer"}}>{u.continueJourney}</button>
+        </div>
+      </div>
+    );
+  }
+
+  if(screen==="wrongreview"&&zoneCompleteData){
+    const z=ZONES.find(z2=>z2.id===zoneCompleteData.zoneId);
+    return(
+      <div style={{...bg,padding:"16px 16px 32px"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+          <div>
+            <p style={{color:z.color,fontSize:10,fontWeight:"bold"}}>{z.icon} {z.names[lang]||z.names.en}</p>
+            <p style={{color:"white",fontWeight:900,fontSize:17}}>{u.reviewTitle}</p>
+          </div>
+          <div style={{textAlign:"right"}}>
+            <p style={{color:C.red,fontSize:10,fontWeight:"bold"}}>{wrongAnswers.length} {u.missed}</p>
+          </div>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:12,marginBottom:16}}>
+          {wrongAnswers.map((w,i)=>(
+            <div key={i} style={{borderRadius:14,overflow:"hidden",border:`1px solid rgba(255,255,255,0.1)`}}>
+              <div style={{padding:"10px 14px",background:"rgba(255,255,255,0.04)"}}><p style={{color:"rgba(255,255,255,0.7)",fontSize:12,lineHeight:1.55}}>{w.q}</p></div>
+              <div style={{padding:"8px 14px",background:`${C.red}10`,borderTop:`1px solid ${C.red}33`}}><p style={{color:C.red,fontSize:10,fontWeight:"bold"}}>✗ {w.your}</p></div>
+              <div style={{padding:"8px 14px",background:`${C.green}10`,borderTop:`1px solid ${C.green}33`}}><p style={{color:C.green,fontSize:10,fontWeight:"bold"}}>✓ {w.correct}</p></div>
+              <div style={{padding:"8px 14px",background:"rgba(255,255,255,0.02)",borderTop:"1px solid rgba(255,255,255,0.06)"}}><p style={{color:"rgba(255,255,255,0.55)",fontSize:10,lineHeight:1.55}}>{w.exp}</p></div>
+            </div>
+          ))}
+        </div>
+        <button onClick={()=>{setWrongAnswers([]);setScreen("zonecomplete");}} style={{width:"100%",padding:"13px",borderRadius:12,background:z.color,color:"#000",fontWeight:900,fontSize:14,border:"none",cursor:"pointer"}}>{u.continueJourney} 🎉</button>
+      </div>
+    );
+  }
+
+  if(screen==="game"&&cur){
+    const ok=isOk();
+    const opts2=txLoading||!displayQ?[]:cur.t==="tf"?[lang==="es"?"VERDADERO ✓":lang==="fr"?"VRAI ✓":lang==="pt"?"VERDADEIRO ✓":lang==="sn"?"CHOKWADI ✓":"TRUE ✓",lang==="es"?"FALSO ✗":lang==="fr"?"FAUX ✗":lang==="pt"?"FALSO ✗":lang==="sn"?"NHEMA ✗":"FALSE ✗"]:displayQ.o;
+    const badge=isBoss?`${u.bossLevel}`:cur.t==="scenario"?`📋 ${u.scenario}`:cur.t==="tf"?`⚡ ${u.tf}`:`❓ ${u.knowledge}`;
+    const cardColor=isBoss?C.red:zData.color;
+    const timerPct=(timeLeft/30)*100;
+    const timerColor=timeLeft<=5?C.red:timeLeft<=10?C.orange:C.green;
+    return(
+      <div style={{...bg,display:"flex",flexDirection:"column",position:"relative"}}>
+        {streakBurst&&(
+          <div style={{position:"fixed",top:"50%",left:"50%",transform:"translate(-50%,-50%)",zIndex:300,textAlign:"center",pointerEvents:"none",animation:"burstPop 2s ease forwards"}}>
+            <p style={{fontSize:44}}>🔥</p>
+            <p style={{color:C.gold,fontSize:24,fontWeight:900,textShadow:`0 0 20px ${C.gold}`}}>{streakBurst} {u.streakMsg[Math.min(Math.floor(streakBurst/3),3)]}</p>
+            <p style={{color:"rgba(255,255,255,0.7)",fontSize:13}}>+5 bonus pts</p>
+          </div>
+        )}
+        <div style={{padding:"12px 15px 0",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div><p style={{color:cardColor,fontSize:10,fontWeight:"bold"}}>{zData.icon} {zData.names[lang]||zData.names.en}</p><p style={{color:"rgba(255,255,255,0.3)",fontSize:9}}>Q{qIdx+1}/{zoneQs.length} · {u.score}: {score}</p></div>
+          <div style={{display:"flex",alignItems:"center",gap:7}}>
+            <div style={{display:"flex",alignItems:"center",gap:4}}>
+              <div style={{width:28,height:28,borderRadius:"50%",border:`3px solid ${timerColor}`,display:"flex",alignItems:"center",justifyContent:"center",background:`conic-gradient(${timerColor} ${timerPct}%,rgba(255,255,255,0.08) 0%)`,position:"relative"}}>
+                <div style={{width:20,height:20,borderRadius:"50%",background:`linear-gradient(160deg,#050e1a,${C.mid})`,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  <span style={{color:timerColor,fontSize:7,fontWeight:900}}>{timeLeft}</span>
+                </div>
+              </div>
+            </div>
+            {streak>=2&&<span style={{fontSize:9,padding:"2px 7px",borderRadius:20,fontWeight:"bold",background:C.gold+"33",color:C.gold}}>🔥×{streak}</span>}
+            <LangBar/>
+            <span style={{fontSize:14}}>{Array(Math.max(0,lives)).fill("❤️").join("")}</span>
+          </div>
+        </div>
+        <div style={{padding:"5px 15px"}}><div style={{width:"100%",background:"rgba(255,255,255,0.08)",borderRadius:4,height:2}}><div style={{width:`${((qIdx+1)/zoneQs.length)*100}%`,height:2,borderRadius:4,background:cardColor,transition:"width 0.4s"}}/></div></div>
+        <div style={{padding:"8px 15px",flex:1,overflowY:"auto"}}>
+          {isBoss&&<div style={{borderRadius:12,padding:"9px 14px",background:`linear-gradient(135deg,${C.red}30,${C.gold}15)`,border:`2px solid ${C.red}`,marginBottom:9,textAlign:"center"}}>
+            <p style={{color:C.red,fontWeight:900,fontSize:13,letterSpacing:"0.08em"}}>⚡ BOSS LEVEL ⚡</p>
+            <p style={{color:"rgba(255,255,255,0.5)",fontSize:10}}>{u.bossDesc}</p>
+          </div>}
+          <div style={{borderRadius:16,padding:14,marginBottom:10,background:`linear-gradient(135deg,${cardColor}${isBoss?"25":"16"},${cardColor}06)`,border:`1px solid ${cardColor}${isBoss?"66":"40"}`}}>
+            <span style={{fontSize:9,padding:"2px 8px",borderRadius:20,fontWeight:"bold",background:cardColor+"30",color:cardColor,display:"inline-block",marginBottom:8}}>{badge} · +{cur.p}pts{streak>=2&&!shown?" +5🔥":""}</span>
+            {txLoading||!displayQ?<div style={{display:"flex",alignItems:"center",gap:8,padding:"6px 0"}}><div style={{width:16,height:16,borderRadius:"50%",border:`2px solid ${cardColor}`,borderTopColor:"transparent",animation:"spinSlow 0.8s linear infinite"}}/><p style={{color:"rgba(255,255,255,0.5)",fontSize:11}}>{u.translating}</p></div>:<p style={{color:"white",fontWeight:600,fontSize:13,lineHeight:1.65}}>{displayQ.q}</p>}
+          </div>
+          {!txLoading&&displayQ&&<div style={{display:"flex",flexDirection:"column",gap:7}}>
+            {opts2.map((opt,i)=>{
+              const isAns=cur.t==="tf"?(i===0)===cur.a:i===cur.a;
+              let bg2="rgba(255,255,255,0.05)",bd="rgba(255,255,255,0.08)",fc="rgba(255,255,255,0.8)";
+              if(shown){if(isAns){bg2="#27AE6015";bd="#27AE60";fc="#27AE60";}else if(sel===i){bg2="#c0392b15";bd="#c0392b";fc="#e74c3c";}}
+              else if(sel===i){bg2=cardColor+"18";bd=cardColor;fc="white";}
+              return <button key={i} onClick={()=>pick(i)} style={{textAlign:"left",padding:"11px 12px",borderRadius:11,background:bg2,border:`1.5px solid ${bd}`,color:fc,fontSize:12,fontWeight:500,cursor:shown?"default":"pointer"}}>
+                {cur.t!=="tf"&&<span style={{fontWeight:"bold",marginRight:7,color:shown&&isAns?"#27AE60":shown&&sel===i?"#e74c3c":cardColor}}>{String.fromCharCode(65+i)}.</span>}
+                {opt}<span style={{float:"right"}}>{shown&&isAns?"✅":shown&&sel===i?"❌":""}</span>
+              </button>;
+            })}
+          </div>}
+          {!shown&&displayQ&&!hintUsed&&<button onClick={useHint} style={{marginTop:8,padding:"7px 14px",borderRadius:10,background:"rgba(255,255,255,0.05)",border:"1px dashed rgba(255,255,255,0.2)",color:"rgba(255,255,255,0.4)",fontSize:11,cursor:"pointer",width:"100%"}}>{u.hint}</button>}
+          {hintUsed&&hintText&&!shown&&<div style={{marginTop:8,padding:10,borderRadius:10,background:`${C.gold}10`,border:`1px solid ${C.gold}33`}}><p style={{color:C.gold,fontSize:9,fontWeight:"bold",marginBottom:3}}>{u.hintUsed}</p><p style={{color:"rgba(255,255,255,0.6)",fontSize:11,lineHeight:1.5}}>{hintText}</p></div>}
+          {timedOut&&shown&&<div style={{marginTop:10,padding:12,borderRadius:12,background:"#c0392b12",border:"1px solid #c0392b40"}}><p style={{color:C.red,fontWeight:"bold",fontSize:11,marginBottom:4}}>{u.timesUp}</p><p style={{color:"rgba(255,255,255,0.75)",fontSize:11,lineHeight:1.65}}>{displayQ?.e||cur.e}</p></div>}
+          {!timedOut&&shown&&displayQ&&<div style={{marginTop:10,padding:12,borderRadius:12,background:ok?"#27AE6012":"#c0392b12",border:`1px solid ${ok?"#27AE6040":"#c0392b40"}`}}><p style={{color:ok?"#27AE60":"#e74c3c",fontWeight:"bold",fontSize:10,marginBottom:4}}>{ok?`✅ ${u.correct} +${cur.p}${streak>=3?" +5🔥":""}pts`:`❌ ${u.wrong}`}</p><p style={{color:"rgba(255,255,255,0.75)",fontSize:11,lineHeight:1.65}}>{displayQ.e}</p></div>}
+        </div>
+        {shown&&<div style={{padding:"8px 15px 20px"}}><button onClick={nextQ} style={{width:"100%",padding:12,borderRadius:12,background:cardColor,color:"#000",fontWeight:900,fontSize:13,border:"none",cursor:"pointer"}}>{qIdx+1<zoneQs.length?u.next:u.done}</button></div>}
+        <style>{`@keyframes spinSlow{to{transform:rotate(360deg)}} @keyframes burstPop{0%{transform:translate(-50%,-50%) scale(0.3);opacity:0}30%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}70%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(0.9)}}`}</style>
+      </div>
+    );
+  }
+
+  const LikertScreen=({type})=>{
+    const isTk=type==="toolkit";const dims=isTk?PRACTITIONER_DIMS:DIMENSIONS;const qs=isTk?PSYCH_Q5:PSYCH_Q7;
+    const idx=isTk?z5Idx:z7Idx;const q=qs[idx];const dim=dims.find(d=>d.id===q.dim);
+    return(
+      <div style={{...bg,display:"flex",flexDirection:"column"}}>
+        <div style={{padding:"14px 16px 0",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div><p style={{color:dim.color,fontSize:10,fontWeight:"bold"}}>{isTk?"🧰 Practitioner Self-Check":"🧭 DEI Profile Assessment"}</p><p style={{color:"rgba(255,255,255,0.3)",fontSize:9}}>Statement {idx+1}/{qs.length}</p></div>
+          <LangBar/>
+        </div>
+        <div style={{padding:"6px 16px"}}><div style={{width:"100%",background:"rgba(255,255,255,0.08)",borderRadius:4,height:2}}><div style={{width:`${((idx+1)/qs.length)*100}%`,height:2,borderRadius:4,background:dim.color,transition:"width 0.4s"}}/></div></div>
+        <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center",padding:"12px 18px"}}>
+          <div style={{borderRadius:20,padding:18,marginBottom:16,background:`linear-gradient(135deg,${dim.color}18,${dim.color}06)`,border:`1px solid ${dim.color}40`,textAlign:"center"}}>
+            <p style={{fontSize:22,marginBottom:5}}>{dim.icon}</p>
+            <p style={{color:dim.color,fontSize:9,fontWeight:"bold",letterSpacing:"0.06em",marginBottom:6,textTransform:"uppercase"}}>{dim.label}</p>
+            <p style={{color:"rgba(255,255,255,0.2)",fontSize:9,marginBottom:8}}>{u.psychSub}</p>
+            <p style={{color:"white",fontWeight:600,fontSize:13,lineHeight:1.65}}>{q.s}</p>
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:6}}>
+            {u.likert.map((label,i)=>(
+              <button key={i+1} onClick={()=>pickLikert(i+1,type)} style={{padding:"11px 13px",borderRadius:11,background:"rgba(255,255,255,0.06)",border:"1.5px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.85)",fontSize:12,fontWeight:500,cursor:"pointer",display:"flex",alignItems:"center",gap:9,textAlign:"left"}}>
+                <span style={{width:22,height:22,borderRadius:"50%",border:`2px solid ${dim.color}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:"bold",color:dim.color,flexShrink:0}}>{i+1}</span>{label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  if(screen==="toolkit")return <LikertScreen type="toolkit"/>;
+  if(screen==="psychometric")return <LikertScreen type="psychometric"/>;
+
+  if(screen==="leaderboard"){
+    const sorted=[...mePlayers].sort((a,b)=>b.score-a.score);
+    const medals=["🥇","🥈","🥉"];
+    return(
+      <div style={{...bg,padding:"16px 14px 32px"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+          <div><p style={{color:C.gold,fontSize:16,fontWeight:900}}>{u.lbTitle}</p><p style={{color:"rgba(255,255,255,0.4)",fontSize:9}}>RUZIVO · PGCN · Global</p></div>
+          <div style={{display:"flex",gap:6}}>
+            <button onClick={async()=>{await loadME();}} style={{padding:"5px 10px",borderRadius:8,background:"rgba(255,255,255,0.08)",border:"none",color:"rgba(255,255,255,0.5)",fontSize:10,cursor:"pointer"}}>🔄</button>
+            <button onClick={()=>setScreen("map")} style={{padding:"5px 12px",borderRadius:8,background:"rgba(255,255,255,0.08)",border:"none",color:"rgba(255,255,255,0.5)",fontSize:10,cursor:"pointer"}}>← Back</button>
+          </div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:12}}>
+          {[{l:"Total Players",v:sorted.length,c:C.blue},{l:"Countries",v:new Set(sorted.map(p=>p.country).filter(Boolean)).size,c:C.green},{l:"Avg Score",v:sorted.length?Math.round(sorted.reduce((a,b)=>a+b.score,0)/sorted.length):0,c:C.gold}].map((it,i)=>(
+            <div key={i} style={{borderRadius:11,padding:"10px 6px",background:it.c+"18",border:`1px solid ${it.c}33`,textAlign:"center"}}>
+              <p style={{color:it.c,fontSize:20,fontWeight:900}}>{meLoading?"...":it.v}</p>
+              <p style={{color:"rgba(255,255,255,0.35)",fontSize:8}}>{it.l}</p>
+            </div>
+          ))}
+        </div>
+        {sorted.length===0?(
+          <div style={{borderRadius:14,padding:24,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",textAlign:"center"}}>
+            <p style={{fontSize:32,marginBottom:8}}>🏆</p>
+            <p style={{color:"rgba(255,255,255,0.4)",fontSize:12}}>{u.lbNoData}</p>
+          </div>
+        ):(
+          <div style={{display:"flex",flexDirection:"column",gap:6}}>
+            {sorted.slice(0,20).map((p,i)=>(
+              <div key={i} style={{borderRadius:12,padding:"11px 14px",display:"flex",alignItems:"center",gap:10,background:i<3?C.gold+"10":"rgba(255,255,255,0.04)",border:`1px solid ${i<3?C.gold+"44":"rgba(255,255,255,0.07)"}`,position:"relative"}}>
+                <span style={{fontSize:i<3?20:13,fontWeight:"bold",color:i<3?C.gold:"rgba(255,255,255,0.3)",minWidth:24,textAlign:"center"}}>{i<3?medals[i]:`#${i+1}`}</span>
+                <div style={{flex:1}}>
+                  <p style={{color:p.name===name?"#27AE60":"white",fontWeight:"bold",fontSize:12}}>{p.name}{p.name===name?" 👈":""}</p>
+                  <p style={{color:"rgba(255,255,255,0.35)",fontSize:9}}>{p.country||'—'} · {p.org||'—'} · {p.role||'—'}</p>
+                </div>
+                <div style={{textAlign:"right"}}>
+                  <p style={{color:i<3?C.gold:C.blue,fontWeight:900,fontSize:14}}>{p.score}</p>
+                  <p style={{color:"rgba(255,255,255,0.25)",fontSize:8}}>{p.pct}% · {p.zonesCompleted||0} zones</p>
+                  <p style={{color:C.teal,fontSize:7}}>{(p.deiProfile||'').replace(/[^\w\s]/g,'').trim().split(' ').slice(0,2).join(' ')}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        <p style={{color:"rgba(255,255,255,0.1)",fontSize:8,textAlign:"center",marginTop:12}}>Live data · PGCN EGSI Framework · All players globally</p>
+      </div>
+    );
+  }
+
+  if(screen==="me"){
+    const countries=[...new Set(mePlayers.map(p=>p.country).filter(Boolean))];
+    const orgs=[...new Set(mePlayers.map(p=>p.org).filter(Boolean))];
+    const profiles=mePlayers.reduce((acc,p)=>{acc[p.deiProfile]=(acc[p.deiProfile]||0)+1;return acc;},{});
+    return(
+      <div style={{...bg,padding:"16px 14px 32px"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+          <div><p style={{color:C.gold,fontSize:10,fontWeight:"bold"}}>📊 {u.meTitle}</p><p style={{color:"rgba(255,255,255,0.4)",fontSize:9}}>PGCN · EGSI · RUZIVO</p></div>
+          <div style={{display:"flex",gap:6}}>
+            <button onClick={()=>setScreen("leaderboard")} style={{padding:"5px 10px",borderRadius:8,background:C.gold+"22",border:`1px solid ${C.gold}44`,color:C.gold,fontSize:9,fontWeight:"bold",cursor:"pointer"}}>🏆</button>
+            <button onClick={()=>setScreen("intro")} style={{background:"rgba(255,255,255,0.1)",border:"none",color:"rgba(255,255,255,0.5)",padding:"5px 12px",borderRadius:10,fontSize:11,cursor:"pointer"}}>← Back</button>
+          </div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:10}}>
+          {[{l:u.meTotalPlayers,v:mePlayers.length,c:C.blue},{l:u.meCountries,v:countries.length,c:C.green},{l:u.meOrgs,v:orgs.length,c:C.purple}].map((it,i)=>(
+            <div key={i} style={{borderRadius:12,padding:"11px 6px",background:it.c+"18",border:`1px solid ${it.c}33`,textAlign:"center"}}>
+              <p style={{color:it.c,fontSize:22,fontWeight:900}}>{meLoading?"...":it.v}</p>
+              <p style={{color:"rgba(255,255,255,0.4)",fontSize:9}}>{it.l}</p>
+            </div>
+          ))}
+        </div>
+        {countries.length>0&&<div style={{borderRadius:12,padding:10,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",marginBottom:8}}><p style={{color:C.green,fontSize:9,fontWeight:"bold",marginBottom:5,textTransform:"uppercase"}}>🌍 Countries</p><div style={{display:"flex",flexWrap:"wrap",gap:4}}>{countries.map(c=><span key={c} style={{padding:"3px 8px",borderRadius:20,background:C.green+"22",color:C.green,fontSize:9}}>{c}</span>)}</div></div>}
+        {orgs.length>0&&<div style={{borderRadius:12,padding:10,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",marginBottom:8}}><p style={{color:C.purple,fontSize:9,fontWeight:"bold",marginBottom:5,textTransform:"uppercase"}}>🏛️ Organisations</p><div style={{display:"flex",flexWrap:"wrap",gap:4}}>{orgs.map(o=><span key={o} style={{padding:"3px 8px",borderRadius:20,background:C.purple+"22",color:C.purple,fontSize:9}}>{o}</span>)}</div></div>}
+        {Object.keys(profiles).length>0&&<div style={{borderRadius:12,padding:10,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",marginBottom:8}}><p style={{color:C.teal,fontSize:9,fontWeight:"bold",marginBottom:6,textTransform:"uppercase"}}>🧭 DEI Profiles</p>{Object.entries(profiles).map(([profile,count])=><div key={profile} style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}><p style={{color:"rgba(255,255,255,0.6)",fontSize:10}}>{profile}</p><div style={{display:"flex",alignItems:"center",gap:5}}><div style={{width:60,height:5,borderRadius:3,background:"rgba(255,255,255,0.1)"}}><div style={{width:`${(count/mePlayers.length)*100}%`,height:5,borderRadius:3,background:C.teal}}/></div><p style={{color:C.teal,fontSize:10,fontWeight:"bold"}}>{count}</p></div></div>)}</div>}
+        <div style={{borderRadius:12,padding:10,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)"}}>
+          <p style={{color:C.gold,fontSize:9,fontWeight:"bold",marginBottom:7,textTransform:"uppercase"}}>🕒 {u.meRecent}</p>
+          {mePlayers.length===0?<p style={{color:"rgba(255,255,255,0.3)",fontSize:11,textAlign:"center",padding:"10px 0"}}>{u.meNoData}</p>:mePlayers.slice(0,8).map((p,i)=><div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:"1px solid rgba(255,255,255,0.05)"}}><div><p style={{color:"white",fontSize:11,fontWeight:"bold"}}>{p.name}</p><p style={{color:"rgba(255,255,255,0.35)",fontSize:9}}>{p.country||'—'} · {p.org||'—'}</p></div><div style={{textAlign:"right"}}><p style={{color:C.gold,fontSize:10,fontWeight:"bold"}}>{p.score}pts</p><p style={{color:"rgba(255,255,255,0.3)",fontSize:8}}>{new Date(p.timestamp).toLocaleDateString()}</p></div></div>)}
+        </div>
+        <button onClick={loadME} style={{width:"100%",marginTop:8,padding:"9px",borderRadius:10,background:"rgba(255,255,255,0.07)",color:"rgba(255,255,255,0.5)",fontSize:11,border:"1px solid rgba(255,255,255,0.1)",cursor:"pointer"}}>🔄 Refresh</button>
+      </div>
+    );
+  }
+
+  if(screen==="report"){
+    const DimBar=({dim,score:s})=>(
+      <div style={{marginBottom:5}}>
+        <div style={{display:"flex",justifyContent:"space-between",marginBottom:2}}><span style={{color:"rgba(255,255,255,0.55)",fontSize:9}}>{dim.icon} {dim.label}</span><span style={{color:dim.color,fontSize:9,fontWeight:"bold"}}>{s}%</span></div>
+        <div style={{width:"100%",background:"rgba(255,255,255,0.08)",borderRadius:4,height:6}}>
+          <div style={{width:barsReady?`${s}%`:"0%",height:6,borderRadius:4,background:`linear-gradient(90deg,${dim.color}88,${dim.color})`,transition:"width 1.2s cubic-bezier(0.4,0,0.2,1)"}}/>
+        </div>
+      </div>
+    );
+    return(
+      <div style={{...bg,display:"flex",flexDirection:"column",alignItems:"center",padding:"18px 14px 36px"}}>
+        <div style={{maxWidth:440,width:"100%",borderRadius:22,overflow:"hidden",border:`2px solid ${C.gold}`,boxShadow:`0 0 60px ${C.gold}18`}}>
+          <div style={{background:`linear-gradient(135deg,${C.navy},#0a2015)`,padding:20,textAlign:"center"}}>
+            <p style={{color:C.gold,fontSize:8,letterSpacing:"0.2em",textTransform:"uppercase",marginBottom:3}}>Peace, Gender and Climate Network · EGSI Certified</p>
+            <div style={{fontSize:32,margin:"3px 0"}}>🏆</div>
+            <h2 style={{color:"white",fontWeight:900,fontSize:15,margin:"0 0 2px"}}>CERTIFICATE OF COMPLETION</h2>
+            <p style={{color:"rgba(255,255,255,0.4)",fontSize:9,marginBottom:8}}>RUZIVO · TFA · TFZ · AIIDEV · UNDP · ZOU · MBIMB · IEP · 2026</p>
+            <p style={{color:"rgba(255,255,255,0.35)",fontSize:9,marginBottom:2}}>{u.awarded}</p>
+            <p style={{color:C.gold,fontSize:22,fontWeight:900,marginBottom:3}}>{name}</p>
+            {(country||org)&&<p style={{color:"rgba(255,255,255,0.35)",fontSize:9,marginBottom:5}}>{country||''}{country&&org?' · ':''}{org||''}{role?' · '+role:''}</p>}
+            <p style={{color:"rgba(255,255,255,0.5)",fontSize:10,lineHeight:1.55,marginBottom:12,padding:"0 4px"}}>{u.certBody}</p>
+            <div style={{borderRadius:13,padding:12,marginBottom:10,background:"rgba(255,255,255,0.04)",border:`1px solid ${C.blue}33`,textAlign:"left"}}>
+              <p style={{color:C.blue,fontSize:9,fontWeight:"bold",letterSpacing:"0.06em",marginBottom:8,textTransform:"uppercase"}}>📊 {u.knowledgeAch}</p>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6}}>
+                {[{l:"Points",v:score,c:C.blue},{l:"Accuracy",v:pct+"%",c:C.green},{l:"Best Streak",v:"×"+best+"🔥",c:C.gold}].map((it,i)=>(
+                  <div key={i} style={{borderRadius:8,padding:"8px 3px",background:it.c+"18",textAlign:"center"}}><p style={{color:it.c,fontSize:17,fontWeight:900}}>{it.v}</p><p style={{color:"rgba(255,255,255,0.3)",fontSize:8}}>{it.l}</p></div>
+                ))}
+              </div>
+            </div>
+            {z5Profile&&<div style={{borderRadius:13,padding:13,marginBottom:10,background:`linear-gradient(135deg,${C.green}12,${C.green}05)`,border:`1px solid ${C.green}33`,textAlign:"left"}}>
+              <p style={{color:C.green,fontSize:9,fontWeight:"bold",letterSpacing:"0.06em",marginBottom:6,textTransform:"uppercase"}}>🧰 {u.practitioner}</p>
+              <p style={{color:C.green,fontSize:15,fontWeight:900,marginBottom:3}}>{z5Profile.level}</p>
+              <p style={{color:"rgba(255,255,255,0.5)",fontSize:10,marginBottom:9,lineHeight:1.5}}>{z5Profile.desc}</p>
+              {PRACTITIONER_DIMS.map(d=><DimBar key={d.id} dim={d} score={z5Profile.scores[d.id]}/>)}
+              <div style={{borderRadius:7,padding:"5px 8px",background:z5Profile.strongest.color+"22",marginTop:5}}><p style={{color:z5Profile.strongest.color,fontSize:9,fontWeight:"bold"}}>{z5Profile.strongest.icon} {u.strength}: {z5Profile.strongest.label}</p></div>
+            </div>}
+            {z7Profile&&<div style={{borderRadius:13,padding:13,marginBottom:10,background:`linear-gradient(135deg,${C.teal}12,${C.teal}05)`,border:`1px solid ${C.teal}33`,textAlign:"left"}}>
+              <p style={{color:C.teal,fontSize:9,fontWeight:"bold",letterSpacing:"0.06em",marginBottom:6,textTransform:"uppercase"}}>🧭 {u.deiProfile}</p>
+              <p style={{color:C.teal,fontSize:15,fontWeight:900,marginBottom:3}}>{z7Profile.profile}</p>
+              <p style={{color:"rgba(255,255,255,0.5)",fontSize:10,marginBottom:9,lineHeight:1.5}}>{z7Profile.tagline}</p>
+              {DIMENSIONS.map(d=><DimBar key={d.id} dim={d} score={z7Profile.scores[d.id]}/>)}
+              <div style={{borderRadius:7,padding:"5px 8px",background:z7Profile.strongest.color+"22",marginTop:5}}><p style={{color:z7Profile.strongest.color,fontSize:9,fontWeight:"bold"}}>{z7Profile.strongest.icon} {u.strength}: {z7Profile.strongest.label}</p></div>
+            </div>}
+            {z7Profile&&<div style={{borderRadius:13,padding:13,marginBottom:12,background:C.gold+"10",border:`1px dashed ${C.gold}44`,textAlign:"left"}}>
+              <p style={{color:C.gold,fontSize:9,fontWeight:"bold",letterSpacing:"0.06em",marginBottom:5,textTransform:"uppercase"}}>💡 {u.nextStep}</p>
+              <p style={{color:"rgba(255,255,255,0.7)",fontSize:11,lineHeight:1.65}}>{z7Profile.alp}</p>
+            </div>}
+            <div style={{borderRadius:12,padding:11,marginBottom:10,background:"rgba(245,166,35,0.08)",border:"1px solid rgba(245,166,35,0.3)",textAlign:"center"}}>
+              <p style={{color:C.gold,fontSize:10,fontWeight:900,letterSpacing:"0.08em"}}>⬡ EGSI CERTIFIED</p>
+              <p style={{color:"rgba(255,255,255,0.35)",fontSize:8,marginTop:2}}>Earth Gaming Standards International · PGCN Game Architect</p>
+            </div>
+            <p style={{color:"rgba(255,255,255,0.18)",fontSize:7}}>SDG 5 · SDG 13 · SDG 16 · Agenda 2063 · EN ES FR PT SN · www.peacegenderandclimatenetwork.com</p>
+          </div>
+        </div>
+        <button onClick={async()=>{
+          setCertLoading(true);
+          try{const cv=buildCert(name,score,pct,z5Profile,z7Profile,best,country,org,role);const a=document.createElement('a');a.download=`RUZIVO_EGSI_Certificate_${name.replace(/\s+/g,'_')}_2026.png`;a.href=cv.toDataURL('image/png',1.0);a.click();}
+          catch(e){alert('Please screenshot this screen to save your certificate.');}
+          setCertLoading(false);
+        }} style={{marginTop:14,width:"100%",maxWidth:440,padding:"14px",borderRadius:14,background:`linear-gradient(135deg,${C.gold},#e6920a)`,color:"#000",fontWeight:900,fontSize:15,border:"none",cursor:"pointer",boxShadow:`0 4px 20px ${C.gold}44`}}>
+          {certLoading?"⏳ Generating...":"📄 Download EGSI Certificate"}
+        </button>
+        <button onClick={async()=>{await loadME();setScreen("leaderboard");}} style={{marginTop:8,width:"100%",maxWidth:440,padding:"11px",borderRadius:12,background:"rgba(255,255,255,0.08)",color:C.gold,fontWeight:700,fontSize:12,border:`1px solid ${C.gold}44`,cursor:"pointer"}}>🏆 View Global Leaderboard</button>
+        <div style={{marginTop:10,width:"100%",maxWidth:440,borderRadius:12,padding:"10px 14px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)"}}>
+          <p style={{color:"rgba(255,255,255,0.5)",fontSize:9,fontWeight:"bold",marginBottom:4}}>📞 Facilitation Support · PGCN</p>
+          <p style={{color:C.gold,fontSize:10}}>Kingdom Gwangwava</p>
+          <p style={{color:"rgba(255,255,255,0.4)",fontSize:9,marginTop:2}}>pgcnglobal@gmail.com</p>
+          <p style={{color:"rgba(255,255,255,0.25)",fontSize:8,marginTop:2}}>www.peacegenderandclimatenetwork.com</p>
+        </div>
+        <button onClick={()=>{resetAll();setScreen("intro");}} style={{marginTop:8,padding:"10px 24px",borderRadius:12,background:"rgba(255,255,255,0.08)",color:"rgba(255,255,255,0.5)",fontWeight:700,fontSize:12,border:"1px solid rgba(255,255,255,0.15)",cursor:"pointer"}}>{u.again}</button>
+      </div>
+    );
+  }
+  return null;
+}
