@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RUZIVO — DEI Knowledge Challenge | PGCN</title>
+<style>
+  :root{
+    --navy:#0f2233; --mid:#1a3a5c; --gold:#F5A623;
+    --blue:#4A90D9; --green:#27AE60; --white:#ffffff;
+    --pink:#D81B8C; --purple:#9B59B6; --teal:#16A085; --red:#E74C3C; --orange:#E67E22;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:linear-gradient(160deg,#050e1a 0%,var(--mid) 55%,#0a2015 100%);
+    min-height:100vh; color:#fff;
+  }
+  #app{min-height:100vh; display:flex; flex-direction:column;}
+  .screen{padding:20px 16px; flex:1; display:flex; flex-direction:column;}
+  .center{align-items:center; justify-content:center; text-align:center;}
+  .maxw{max-width:440px; width:100%; margin:0 auto;}
+  h1{font-size:46px; font-weight:900; letter-spacing:4px;}
+  .eyebrow{color:var(--gold); font-size:9px; letter-spacing:.22em; text-transform:uppercase; margin-bottom:3px;}
+  .sub{color:rgba(255,255,255,.75); font-size:12px; margin-bottom:3px;}
+  .tag{color:var(--gold); font-size:9px; font-weight:bold; margin-bottom:10px;}
+  .zones-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:5px; margin-bottom:10px;}
+  .zone-chip{border-radius:9px; padding:7px 3px; text-align:center;}
+  .zone-chip .ic{font-size:14px;}
+  .zone-chip p{font-size:9px; font-weight:bold; margin-top:2px;}
+  .feature-row{border-radius:12px; padding:9px; margin-bottom:9px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);}
+  .feature-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:5px;}
+  .feature-grid div{text-align:center;}
+  .feature-grid p{font-size:9px; font-weight:bold; margin-top:1px; line-height:1.3;}
+  .field-label{display:block; color:rgba(255,255,255,.85); font-size:12px; font-weight:600; margin-bottom:4px;}
+  input:focus-visible, select:focus-visible, button:focus-visible, [onclick]:focus-visible{
+    outline:3px solid var(--gold); outline-offset:2px;
+  }
+  input::placeholder{color:rgba(255,255,255,.55);}
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important;}
+    .confetti-piece{display:none;}
+  }
+  input, select{
+    width:100%; padding:12px; border-radius:12px; background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.15); color:#fff; font-size:14px; text-align:center;
+  }
+  select{text-align:left;}
+  .btn{
+    width:100%; padding:12px; border-radius:12px; background:var(--gold); color:#000;
+    font-weight:900; font-size:14px; border:none; cursor:pointer; margin-top:8px;
+  }
+  .btn.secondary{background:rgba(255,255,255,.08); color:rgba(255,255,255,.85); font-weight:700;}
+  .btn.ghost{background:none; color:rgba(255,255,255,.65); font-size:12px; border:none; padding:12px;}
+  .langbar{display:flex; gap:4px; align-items:center; flex-wrap:wrap; justify-content:center;}
+  .langbtn{padding:8px 12px; border-radius:20px; font-size:11px; font-weight:bold; background:rgba(255,255,255,.1); color:rgba(255,255,255,.75); border:none; cursor:pointer;}
+  .langbtn.active{background:var(--gold); color:#000;}
+  .contact-box{border-radius:10px; padding:7px 12px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06); margin-top:8px;}
+  .contact-box p{font-size:8px;}
+  .zonebtn{
+    border-radius:14px; padding:11px 13px; display:flex; align-items:center; gap:11px;
+    background:rgba(255,255,255,.03); border:2px solid rgba(255,255,255,.05); width:100%;
+    cursor:pointer; text-align:left; margin-bottom:8px; color:#fff;
+  }
+  .zonebtn.active{cursor:pointer;}
+  .zonebtn.locked{opacity:.3; cursor:default;}
+  .zonebtn.done{cursor:default;}
+  .zone-icon{width:42px; height:42px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;}
+  .zone-info{flex:1;}
+  .zone-info .zlabel{font-size:9px; font-weight:bold; letter-spacing:.07em; margin-bottom:1px;}
+  .zone-info .zname{font-size:12px; font-weight:bold; margin-bottom:1px;}
+  .zone-info .zsub{font-size:9px; color:rgba(255,255,255,.7);}
+  .zone-right{text-align:right; flex-shrink:0;}
+  .zone-right .zscore{font-weight:bold; font-size:11px;}
+  .zone-right .zcount{font-size:9px; color:rgba(255,255,255,.2);}
+  .qcard{border-radius:16px; padding:14px; margin-bottom:11px;}
+  .badge{font-size:9px; padding:2px 8px; border-radius:20px; font-weight:bold; display:inline-block; margin-bottom:8px;}
+  .qtext{color:#fff; font-weight:600; font-size:13px; line-height:1.65;}
+  .opt{
+    text-align:left; padding:11px 12px; border-radius:11px; background:rgba(255,255,255,.05);
+    border:1.5px solid rgba(255,255,255,.08); color:rgba(255,255,255,.8); font-size:12px;
+    font-weight:500; cursor:pointer; width:100%; margin-bottom:7px; display:block;
+  }
+  .opt .oletter{font-weight:bold; margin-right:7px;}
+  .opt .oflag{float:right;}
+  .progress-track{width:100%; background:rgba(255,255,255,.08); border-radius:4px; height:2px; margin:6px 15px; max-width:calc(100% - 30px);}
+  .progress-fill{height:2px; border-radius:4px; transition:width .4s;}
+  .timer-ring{width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; position:relative;}
+  .timer-inner{width:20px; height:20px; border-radius:50%; background:linear-gradient(160deg,#050e1a,var(--mid)); display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:900;}
+  .topbar{padding:12px 15px 0; display:flex; justify-content:space-between; align-items:center;}
+  .lives{font-size:14px;}
+  .hint-btn{margin-top:8px; padding:10px 14px; border-radius:10px; background:rgba(255,255,255,.05); border:1px dashed rgba(255,255,255,.3); color:rgba(255,255,255,.7); font-size:12px; cursor:pointer; width:100%;}
+  .explain{margin-top:10px; padding:12px; border-radius:12px;}
+  .likert-card{border-radius:20px; padding:18px; margin-bottom:16px; text-align:center;}
+  .likert-opt{padding:11px 13px; border-radius:11px; background:rgba(255,255,255,.06); border:1.5px solid rgba(255,255,255,.1); color:rgba(255,255,255,.85); font-size:12px; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:9px; text-align:left; width:100%; margin-bottom:6px;}
+  .likert-num{width:22px; height:22px; border-radius:50%; border:2px solid; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold; flex-shrink:0;}
+  .concept-card{border-radius:13px; padding:13px; margin-bottom:9px;}
+  .concept-card .ck{font-weight:bold; font-size:11px; margin-bottom:4px;}
+  .concept-card .cv{color:rgba(255,255,255,.75); font-size:11px; line-height:1.65;}
+  .cert-wrap{max-width:440px; width:100%; margin:0 auto; border-radius:22px; overflow:hidden; border:2px solid var(--blue);}
+  .cert-header{background:linear-gradient(135deg,#0a1a2e,#08251a); padding:20px; text-align:center;}
+  .stat-box{border-radius:8px; padding:8px 3px; text-align:center;}
+  .dimbar-row{margin-bottom:5px;}
+  .dimbar-track{width:100%; background:rgba(255,255,255,.08); border-radius:4px; height:6px;}
+  .dimbar-fill{height:6px; border-radius:4px; transition:width 1.2s cubic-bezier(.4,0,.2,1); width:0%;}
+  .lb-row{border-radius:12px; padding:11px 14px; display:flex; align-items:center; gap:10px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07); margin-bottom:6px;}
+  .me-stat{border-radius:12px; padding:12px 8px; text-align:center;}
+  .footer-note{color:rgba(255,255,255,.1); font-size:8px; text-align:center; margin-top:10px;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes cFall{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+  .confetti-piece{position:fixed; top:-12px; pointer-events:none; z-index:200; animation:cFall linear forwards;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* =========================================================================
+   RUZIVO — DEI Knowledge Challenge
+   Standalone build. Peace, Gender and Climate Network (PGCN).
+   Configure CONFIG.API_URL below with your Apps Script Web App URL
+   (see apps-script-backend.gs) to enable real, cross-country M&E data.
+   Without it, the game runs fully but M&E/leaderboard stay device-local.
+   ========================================================================= */
+
+const CONFIG = {
+  API_URL: "https://script.google.com/macros/s/AKfycbwODJgq-sjeQZSIkjxbGUrMgr2RJmyNW97Ak0-eu9fcZhx7HdTdfKThiOxet1Dwdn8/exec",
+  ADMIN_PIN: "PGCN2026"
+};
+
+const C = {navy:"#0f2233", mid:"#1a3a5c", gold:"#F5A623", blue:"#4A90D9", green:"#27AE60", white:"#ffffff", pink:"#D81B8C", purple:"#9B59B6", teal:"#16A085", red:"#E74C3C", orange:"#E67E22"};
+
+const ZONES = [
+  {id:1, name:"Know Yourself", sub:"Identity · Ubuntu · Socialisation", color:C.blue, icon:"🪞", tag:"S1–S2"},
+  {id:2, name:"Know Your Context", sub:"Zimbabwe Data · History · Policy", color:C.purple, icon:"🗺️", tag:"Zimbabwe"},
+  {id:3, name:"Gender Justice", sub:"Feminism · Womanism · GBV · Equity", color:C.pink, icon:"⚖️", tag:"SDG 5"},
+  {id:4, name:"Child & Youth", sub:"MBIMB · Protection · Rights", color:C.gold, icon:"🌱", tag:"SDG 16"},
+  {id:5, name:"Practitioner Toolkit", sub:"Self-Assessment · No Right or Wrong", color:C.green, icon:"🧰", tag:"Self-Check", type:"toolkit"},
+  {id:6, name:"Leadership Toolkit", sub:"TFA · TFZ · AIIDEV · UNDP · ZOU · IEP · MBIMB", color:C.red, icon:"✊", tag:"Leadership"},
+  {id:7, name:"DEI Profile", sub:"Values · Mindset · No Right or Wrong", color:C.teal, icon:"🧭", tag:"Profile", type:"psychometric"}
+];
+
+const ZONE_CONCEPTS = {
+  1:[{k:"Ubuntu / Hunhu", v:"'I am because we are.' Identity is communal, not individual. Stanlake Samkange formalised this as Zimbabwean political philosophy in 1980."},
+     {k:"Cycle of Socialisation", v:"We absorb values, norms and identities from birth, before we have the language to question them."},
+     {k:"Cycle of Liberation", v:"Waking Up → Reaching Out → Building Community → Coalescing → Creating Change."}],
+  2:[{k:"Zimbabwe's Education Crisis", v:"33.19% O-Level pass rate. 895,000+ children out of school. Geography, not intelligence, determines outcomes."},
+     {k:"GBV in Zimbabwe", v:"1 in 3 women have experienced physical violence. 25.8% of all GBV victims are children."},
+     {k:"History Shapes Now", v:"Gukurahundi (1983–87) still blocks exam registration through destroyed birth certificates."}],
+  3:[{k:"Equality vs Equity", v:"Gender equality removes barriers for all. Gender equity deliberately elevates those historically disadvantaged."},
+     {k:"Africana Womanism", v:"Gender justice rooted in African epistemology, not a Western import."},
+     {k:"Both / And Imperative", v:"Empowering girls AND transforming boys addresses structure, not just symptom."}],
+  4:[{k:"My Body Is My Body (MBIMB)", v:"Bodily autonomy is a child protection tool. Disclosures of abuse are NEVER confidential."},
+     {k:"Period Poverty", v:"60% of rural girls lack reliable menstrual products. 20% of school days are lost."},
+     {k:"Child Economic Exploitation", v:"Organised child begging directed by adults violates ILO Convention No. 182."}],
+  5:[{k:"Phase 1 — Diagnose", v:"What behaviour is happening? What unconscious worldview lies beneath it?"},
+     {k:"Phase 2 — Equity Alternative", v:"What would equity-aligned beliefs and behaviour look like here?"},
+     {k:"Phase 3 — Take Action", v:"What conditions support new values and behaviours?"}],
+  6:[{k:"IEP Positive Peace", v:"Peace is measured through equitable resource distribution and rights acceptance."},
+     {k:"Coaching Leadership", v:"Build others' capacity, not dependency. Ask powerful questions."},
+     {k:"In-the-Moment Action", v:"Name harm at the right level first. Private before public."}]
+};
+
+const ORGS = ["Teach For All","Teach For Zimbabwe","AIIDEV Africa","UNDP","Zimbabwe Open University (ZOU)","PGCN","MBIMB Network","Inst. for Economics & Peace","School / Education Institution","Government / Ministry","Civil Society / NGO","Community Organisation","Other / Individual"];
+const ROLES = ["Teacher / Educator","Student / Youth Learner","Development Professional","Community Leader","Researcher / Academic","Policy Maker / Government","NGO / Civil Society Worker","DEI Advocate / Practitioner","School Leader / Administrator","Other"];
+
+const Q = [
+{z:1,t:"mcq",p:10,q:"The Cycle of Socialisation and Cycle of Liberation were developed by:",o:["Paulo Freire","Bobbie Harro","bell hooks","Stanlake Samkange"],a:1,e:"Bobbie Harro's frameworks map how systems shape identity before awareness, and how liberation becomes possible through collective action."},
+{z:1,t:"tf",p:10,q:"Socialisation begins before we are conscious of it, absorbed through family and early community.",a:true,e:"We absorb values and identity markers from birth. Unlearning requires sustained, intentional effort."},
+{z:1,t:"mcq",p:10,q:"The Shona concept that directly parallels Ubuntu philosophy is:",o:["Lobola","Nhaka","Hunhu","Gota"],a:2,e:"Hunhu, formalised as Zimbabwean political philosophy by Stanlake Samkange in 1980."},
+{z:1,t:"mcq",p:10,q:"Ubuntu 'umuntu ngumuntu ngabantu' most directly supports:",o:["Individual achievement as the ultimate goal","Collective responsibility, equity requires community not just personal action","Merit systems as inherently neutral","Western frameworks as universally applicable"],a:1,e:"Ubuntu frames equity as a communal obligation. The village is incomplete when any member is excluded."},
+{z:1,t:"scenario",p:20,q:"A colleague says: 'I treat everyone the same, I don't see gender.' You:",o:["Agree, treating everyone the same is equality","Name the worldview: gender-blindness erases lived experience and is not equity","Stay silent to preserve the relationship","Refer the matter to HR"],a:1,e:"Gender-blindness denies structural disadvantage. Equity requires seeing difference and responding with deliberate, corrective action."},
+{z:1,t:"mcq",p:10,q:"The Cycle of Liberation begins with:",o:["Coalition building","Taking organised social action","Waking up, introspection and growing awareness","Changing national institutions"],a:2,e:"Liberation begins internally. You cannot change what you cannot see."},
+{z:1,t:"tf",p:10,q:"Dominant group members often experience their own identity as 'default' rather than as a socialised identity.",a:true,e:"Creating space for this recognition without shame is a foundational DEI practitioner skill."},
+{z:1,t:"mcq",p:10,q:"Why is personal storytelling foundational in DEI work?",o:["It is easier than data","Stories surface how systems shaped our identity, making invisible socialisation visible","It replaces academic DEI frameworks","It builds relationships without intellectual engagement"],a:1,e:"Storytelling is epistemological, the stories we carry contain evidence of how systems have shaped us."},
+{z:1,t:"tf",p:10,q:"A DEI practitioner's first obligation is to change others, personal self-awareness is secondary.",a:false,e:"False. DEI work must begin with self. You cannot facilitate transformation in others that you have not begun in yourself."},
+{z:1,t:"scenario",p:30,q:"BOSS LEVEL — A participant says: 'I don't have an identity, I'm just normal.' You are facilitating. You:",o:["Move on quickly to avoid disrupting the flow","Invite reflection: everyone has a socialised identity, including dominant groups","Correct them sharply in front of the group","Ask other participants to respond on your behalf"],a:1,e:"Dominant groups experience their identity as 'default', which is itself a socialised condition."},
+{z:2,t:"mcq",p:10,q:"Approximately what proportion of Zimbabwean women aged 15–49 have experienced physical violence?",o:["1 in 10","1 in 5","1 in 3","1 in 2"],a:2,e:"Approximately 1 in 3 (39.4%). Structural responses are required simultaneously."},
+{z:2,t:"mcq",p:10,q:"Section 56 of Zimbabwe's 2013 Constitution guarantees:",o:["The right to a basic state-funded education","Equality and non-discrimination across all protected characteristics","Freedom of conscience and religion","The right to form political parties"],a:1,e:"Section 56 guarantees equality and non-discrimination."},
+{z:2,t:"tf",p:10,q:"Zimbabwe's national O-Level pass rate in 2024 was above 50%.",a:false,e:"False, the 2024 national pass rate was 33.19%."},
+{z:2,t:"mcq",p:10,q:"What percentage of Zimbabwean women were married before age 18 as of 2022?",o:["8.4%","16.2%","33.7%","42.1%"],a:1,e:"16.2%, a declining but persistently serious barrier."},
+{z:2,t:"scenario",p:20,q:"A policy document states: 'Women in precolonial Africa were always subordinate to male authority.' In a workshop, you:",o:["Accept it","Challenge it: women held spiritual authority, agricultural governance and mediation roles","Avoid the debate","Agree but note things have improved"],a:1,e:"Spirit mediums like Nehanda demonstrate substantial precolonial female agency."},
+{z:2,t:"mcq",p:10,q:"The SADC Protocol commits member states to what percentage of women in decision-making by 2030?",o:["30%","40%","50%","60%"],a:2,e:"50%. Parliaments with higher female representation demonstrate stronger legislative attention to health, education and child protection."},
+{z:2,t:"mcq",p:10,q:"Matabeleland North's Grade 7 pass rate in 2020 was:",o:["31%","24%","16%","8%"],a:2,e:"16%, compared to Harare's 66.5%."},
+{z:2,t:"tf",p:10,q:"Only 15% of Zimbabwe's population completes upper secondary education.",a:true,e:"Access without completion is inclusion without equity."},
+{z:2,t:"mcq",p:10,q:"The BaTonga people of Binga were displaced to build:",o:["Hwange Power Station","Kariba Dam","Cahora Bassa Dam","The Limpopo Valley Irrigation Scheme"],a:1,e:"23,000 BaTonga were displaced to generate electricity."},
+{z:2,t:"scenario",p:30,q:"BOSS LEVEL — A district education officer says: 'Our pass rates are low because rural parents don't value education.' Applying the Village Systems Model, you:",o:["Agree, community attitudes drive outcomes","Diagnose all vectors: Geography, Economic, Policy, Institutional, Climate, Community and Gender","Suggest parent education programmes only","Avoid disagreeing with the officer's authority"],a:1,e:"The Village Systems Model demands analysis across all vectors simultaneously."},
+{z:3,t:"mcq",p:10,q:"Africana Womanism was developed by:",o:["Chimamanda Ngozi Adichie","Clenora Hudson-Weems","Oyèrónkẹ Oyěwùmí","bell hooks"],a:1,e:"Hudson-Weems situates African women's struggle within race, class, culture and community."},
+{z:3,t:"tf",p:10,q:"Gender equity and gender equality mean the same thing.",a:false,e:"Gender equality removes barriers for all. Gender equity applies corrective measures for historical disadvantage."},
+{z:3,t:"mcq",p:10,q:"Gender equity involves deliberately ___ the girl child given historical structural disadvantage:",o:["Protecting","Separating","Elevating","Privileging"],a:2,e:"Elevating is corrective, not preferential."},
+{z:3,t:"scenario",p:20,q:"A donor insists your programme adopt a specific ideological position to receive funding. You:",o:["Accept, funding is critical","Assert institutional sovereignty: reject ideological conditionality","Partially comply while maintaining internal disagreement","Ignore the condition and accept the money"],a:1,e:"Community-generated knowledge, not donor-conditioned ideology, must drive programming design."},
+{z:3,t:"mcq",p:10,q:"The spirit medium who led Zimbabwean anti-colonial resistance is:",o:["Lobengula","Nehanda","Mbuya Chipfaya","Sekai Nzenza"],a:1,e:"Nehanda exercised political agency and spiritual leadership long before Western feminist movements emerged."},
+{z:3,t:"tf",p:10,q:"The 50/50 representation goal is a demand for identical domestic roles for men and women.",a:false,e:"50/50 is a governance principle for equitable presence in spaces of authority."},
+{z:3,t:"mcq",p:10,q:"The 2021 Zimbabwe GBV data records how many women abused nationally?",o:["3,053","5,301","12,186","15,239"],a:2,e:"12,186 women, alongside 3,053 men and 5,301 children."},
+{z:3,t:"scenario",p:20,q:"A colleague argues: 'Focusing on boy child education takes resources away from girls.' You:",o:["Agree, evidence prioritises girls","Affirm girls' priority needs, then introduce the both/and evidence","Dismiss the concern","Suggest separating the debates"],a:1,e:"GBV prevention that invests only in girls without transforming boys addresses symptom rather than structure."},
+{z:3,t:"mcq",p:10,q:"The Gota programme develops:",o:["Girl child scholarships","Boy child responsibility, care and respect","Menstrual health provision","Community mediation in GBV cases"],a:1,e:"Investing in transformative boy child programming is structurally less costly than repairing harm from untransformed masculinity."},
+{z:3,t:"scenario",p:30,q:"BOSS LEVEL — A headteacher says: 'We focus on the girl child only, boys are fine.' You:",o:["Agree, institutional focus should remain exclusively on girls","Present the evidence and propose a both/and school programme","Stay silent, the headteacher has authority","Wait for national policy to address boy child issues"],a:1,e:"The both/and imperative: girl child empowerment and boy child transformation are structural complements."},
+{z:4,t:"mcq",p:10,q:"According to Zimbabwe's 2021 GBV data, what percentage of all GBV victims were children?",o:["12.4%","19.1%","25.8%","31.2%"],a:2,e:"25.8%, 4,115 girls and 1,186 boys."},
+{z:4,t:"tf",p:10,q:"Excluding boys from menstrual health education protects girls' safe space and produces better equity outcomes.",a:false,e:"Exclusion produces ignorance, stigma and institutional barriers for girls."},
+{z:4,t:"mcq",p:10,q:"UNICEF Zimbabwe (2025) estimated how many children require urgent humanitarian assistance?",o:["1.2 million","2.1 million","3.5 million","4.8 million"],a:2,e:"3.5 million, driven by El Niño drought."},
+{z:4,t:"scenario",p:20,q:"MBIMB — A Form 1 student discloses that an older student touched them inappropriately and asks you not to tell anyone. You:",o:["Respect confidentiality and say nothing","Reassure the student, explain you are mandated to report to protect them","Handle it yourself without involving administration","Tell the student's parents directly, bypassing school procedures"],a:1,e:"My Body Is My Body: disclosures of abuse are NEVER confidential."},
+{z:4,t:"mcq",p:10,q:"Approximately what percentage of rural Zimbabwean girls' school days are lost to period poverty?",o:["5%","10%","20%","35%"],a:2,e:"20%, one school day in five."},
+{z:4,t:"tf",p:10,q:"Male GBV survivors face fewer disclosure barriers than female survivors.",a:false,e:"Male survivors face compounded barriers: stigma, absent support infrastructure and masculinity norms."},
+{z:4,t:"mcq",p:10,q:"Zimbabwe's BEAM programme does NOT currently cover:",o:["Tuition fees","Examination fees","School uniforms, meals and learning materials","Building fund contributions"],a:2,e:"A child can be a registered BEAM beneficiary and still be sent home for lacking a uniform."},
+{z:4,t:"scenario",p:20,q:"Children around 10 years old are organised as beggars in a city CBD with daily financial targets set by adults. This constitutes:",o:["A poverty coping strategy requiring community sensitivity","Child economic exploitation under ILO Convention No. 182","A cultural practice requiring contextual sensitivity","A welfare issue only"],a:1,e:"Directing attention to the supervising adults identifies a structured exploitation system."},
+{z:4,t:"mcq",p:10,q:"The Education Amendment Act of 2020 prohibits:",o:["Holiday lessons at private centres","Exclusion from school on grounds of pregnancy","Male teachers from teaching female-only classes","Corporal punishment in primary schools only"],a:1,e:"Implementation gaps remain, mandatory maternity leave still functions as de facto exclusion in some schools."},
+{z:4,t:"scenario",p:30,q:"BOSS LEVEL — A 13-year-old girl has been absent 3 weeks. Her teacher says: 'Her family couldn't afford the uniform.' Applying the Village Systems Model, you identify barriers in:",o:["Only the Economic Vector","Policy, Economic, Gender and Community Vectors simultaneously","Only the Institutional Vector","The Climate Vector only"],a:1,e:"A single-vector response to a multi-vector exclusion will always fall short."},
+{z:6,t:"scenario",p:20,q:"TFZ LEADERSHIP — Your headteacher publicly mocks a student who raised a gender equality concern. Your first action is:",o:["Stay silent","Name the harm privately with the headteacher after assembly","Post about it on social media immediately","Report directly to the Ministry without engaging the headteacher first"],a:1,e:"Name harm at the right level first. Private, evidence-grounded engagement is proportionate and relationship-preserving."},
+{z:6,t:"mcq",p:10,q:"IEP — Positive Peace links to DEI through:",o:["Absence of violent conflict as the sole peace measure","Equitable distribution of resources and acceptance of rights","Economic growth rates as the primary peace indicator","Military and security sector reform exclusively"],a:1,e:"Every child in school, every community included, is a peace-building act."},
+{z:6,t:"scenario",p:20,q:"AIIDEV / UNDP — A partner asks you to co-design a youth DEI training for 200 participants across 5 provinces. Your first design decision is:",o:["Use a global DEI curriculum from the internet to save time","Begin with a community needs assessment, grounding the curriculum in local data","Hire an international consultant to lead the full design","Focus on urban participants only"],a:1,e:"PGCN's research-first model: community knowledge drives design, not convenience."},
+{z:6,t:"scenario",p:20,q:"ZOU — Your research confirms girls in Ward 3 miss school during flooding season. Your DEI leadership response is:",o:["Publish the finding and consider it done","Connect research to action: advocate for climate-resilient infrastructure and flexible attendance policies","Wait for the government to act","Focus on individual girls' resilience rather than system change"],a:1,e:"Research without action is scholarship without leadership."},
+{z:6,t:"scenario",p:20,q:"COACHING LEADERSHIP — A junior DEI advocate is frustrated that their advocacy is being ignored. You:",o:["Tell them exactly what to do","Use a coaching framework: ask powerful questions that help them design their own next step","Advise them to give up","Focus only on their emotional state"],a:1,e:"Coaching-informed leadership builds capacity, not dependency."},
+{z:6,t:"scenario",p:20,q:"ORGANISATIONAL DEI — Your organisation's first DEI policy focuses entirely on hiring diversity targets with nothing on inclusion. You:",o:["Accept it, diversity targets are a good start","Advocate to expand the policy toward belonging practices and accountability","Reject the entire policy","Focus only on targets"],a:1,e:"Diversity is the input, inclusion is the system."},
+{z:6,t:"scenario",p:20,q:"INTERSECTIONAL LEADERSHIP — You facilitate a session with a rural female teacher, a male urban professional, a differently-abled youth and a community elder. You open by:",o:["Starting with the most senior person to establish order","Creating a structured space where each lived experience is explicitly valued","Finding common ground and avoiding all discussion of difference","Asking the youngest person to present first as a symbolic gesture"],a:1,e:"Intersectional leadership requires naming and working with power differences from the first moment."},
+{z:6,t:"mcq",p:10,q:"MBIMB — 'My Body Is My Body' means:",o:["Children can refuse all adult requests","Children have the right to bodily autonomy and know they will be believed if they disclose","Parents own children's bodies until age 16","Only girls need bodily autonomy education"],a:1,e:"Body safety is inseparable from gender equity and child rights."},
+{z:6,t:"scenario",p:30,q:"BOSS LEVEL — You present RUZIVO to 166 DEI advocates across 37 countries. In 3 minutes, the single most important thing you communicate is:",o:["Explain all the technical features in detail","RUZIVO is a knowledge journey grounded in Zimbabwe's own data and Ward 3's lived experience","Focus on the certificate design and multilingual features","Apologise for any technical limitations"],a:1,e:"The most powerful pitch names the WHY, not the HOW."}
+];
+
+const PRACTITIONER_DIMS = [
+  {id:"diagnostic",label:"Diagnostic Skill",icon:"🔬",color:C.green},
+  {id:"facilitation",label:"Facilitation Confidence",icon:"🎙️",color:C.blue},
+  {id:"child_safety",label:"Child Safety Lens",icon:"🛡️",color:C.gold},
+  {id:"peace",label:"Peace & Systems Thinking",icon:"☮️",color:C.teal},
+  {id:"tools",label:"Tool Application",icon:"🧰",color:C.purple},
+  {id:"courage",label:"Institutional Courage",icon:"⚡",color:C.orange}
+];
+const PSYCH_Q5 = [
+  {dim:"diagnostic",s:"I can identify the worldview or belief beneath an inequitable behaviour before I respond to it."},
+  {dim:"diagnostic",s:"When I observe an unfair outcome, I ask what system produced it, not just who caused it."},
+  {dim:"diagnostic",s:"I can distinguish between a behaviour I see and the mindset that produced it."},
+  {dim:"facilitation",s:"I feel confident holding a difficult conversation about race, gender or power without shutting it down."},
+  {dim:"facilitation",s:"I can sit with silence and discomfort in a group without rushing to resolve it prematurely."},
+  {dim:"facilitation",s:"I know how to re-centre a marginalised voice in a conversation where it has been overlooked."},
+  {dim:"child_safety",s:"I understand that teaching children about bodily autonomy and consent is a protection tool, not just an adult topic."},
+  {dim:"child_safety",s:"I feel equipped to facilitate age-appropriate conversations about personal safety with young people."},
+  {dim:"peace",s:"I can connect a local DEI challenge, such as school dropout, to its broader peace and systems context."},
+  {dim:"peace",s:"I believe building Positive Peace through inclusive institutions is inseparable from DEI work."},
+  {dim:"tools",s:"I have at least three specific tools I can deploy in the moment when I witness or experience inequity."},
+  {dim:"tools",s:"I know the difference between Lack of Safety and Discomfort, and I respond to each differently."},
+  {dim:"tools",s:"I rely on general goodwill rather than specific equity tools when I encounter inequity in practice.",reverse:true},
+  {dim:"courage",s:"I feel equipped to raise a DEI concern within a formal institutional setting."},
+  {dim:"courage",s:"I can advocate for equity even when it is inconvenient, unpopular or risks my standing in the room."}
+];
+const DIMENSIONS = [
+  {id:"inclusion",label:"Inclusion Mindset",icon:"🤝",color:C.blue},
+  {id:"bias",label:"Bias Awareness",icon:"🔍",color:C.purple},
+  {id:"empathy",label:"Empathy",icon:"❤️",color:C.pink},
+  {id:"ubuntu",label:"Ubuntu / Community",icon:"🌍",color:C.green},
+  {id:"leadership",label:"Leadership Readiness",icon:"🧭",color:C.gold},
+  {id:"action",label:"Action Confidence",icon:"⚡",color:C.red}
+];
+const PSYCH_Q7 = [
+  {dim:"inclusion",s:"I actively create space for people whose perspectives differ from my own."},
+  {dim:"inclusion",s:"I notice when someone is excluded from a conversation or decision, even if I am not directly involved."},
+  {dim:"inclusion",s:"I believe diverse perspectives make decisions and institutions stronger, not just more complicated."},
+  {dim:"bias",s:"I can identify at least one personal bias that has influenced a decision I made this year."},
+  {dim:"bias",s:"I regularly question my first impression of people before acting on it."},
+  {dim:"bias",s:"I don't need to examine my own biases because I treat everyone the same.",reverse:true},
+  {dim:"empathy",s:"I can sit with someone's pain or frustration without rushing to fix or minimise it."},
+  {dim:"empathy",s:"I try to understand a situation from the perspective of the person most affected before forming an opinion."},
+  {dim:"empathy",s:"When someone shares a difficult experience, I notice it affects my own emotions, not just my thinking."},
+  {dim:"ubuntu",s:"I believe my wellbeing is connected to the wellbeing of my community."},
+  {dim:"ubuntu",s:"I see equity work as a collective responsibility rather than an individual achievement."},
+  {dim:"ubuntu",s:"I actively contribute time or resources to support people outside my immediate circle."},
+  {dim:"leadership",s:"I feel equipped to name an inequitable behaviour when I see it, even if it is uncomfortable."},
+  {dim:"leadership",s:"I can distinguish between genuine safety concerns and discomfort in a difficult conversation."},
+  {dim:"leadership",s:"Others come to me when they need guidance on equity or fairness issues."},
+  {dim:"action",s:"I have taken concrete action, not just held an opinion, on a DEI issue in the past 3 months."},
+  {dim:"action",s:"I know what specific next step I would take if I witnessed discrimination in my workplace or school."},
+  {dim:"action",s:"I am confident I can sustain DEI advocacy even when it is met with resistance."}
+];
+
+const UI = {
+  begin:"BEGIN THE JOURNEY →", next:"NEXT →", done:"ZONE COMPLETE ✓", correct:"Correct!", wrong:"Not quite",
+  map:"Journey Map", claim:"🏆 VIEW FINAL REPORT", again:"Play Again", name:"Enter your name...",
+  awarded:"Awarded to", knowledge:"KNOWLEDGE", scenario:"SCENARIO", tf:"TRUE / FALSE",
+  restart:"Restart", noLives:"No lives remaining", score:"Score",
+  certBody:"Completed the RUZIVO DEI Knowledge Challenge and demonstrated knowledge, reflection and readiness for inclusive leadership.",
+  psychSub:"No right or wrong — just honest reflection",
+  likert:["Strongly Disagree","Disagree","Neutral","Agree","Strongly Agree"],
+  knowledgeAch:"Knowledge Achievement", practitioner:"Practitioner Readiness", deiProfile:"DEI Profile",
+  nextStep:"Recommended ALP Next Step", strength:"Strength",
+  register:"Tell Us About Yourself", country:"Your Country / Region", org:"Your Organisation", role:"Your Role",
+  startZone:"I'm Ready — Start Zone →", skipConcept:"Skip — I know this →", keyLearning:"Key Learning Before You Play",
+  meTitle:"M&E Dashboard", meTotalPlayers:"Players", meCountries:"Countries", meOrgs:"Organisations",
+  meRecent:"Recent Players", meNoData:"No player data yet. Share RUZIVO!",
+  hint:"💡 Hint (-5pts)", hintUsed:"Hint", zoneComplete:"Zone Complete!", continueJourney:"Continue Journey →",
+  bossLevel:"⚡ BOSS LEVEL", bossDesc:"Hardest question in the zone — take your time.",
+  timesUp:"⏱️ Time's up!", lbTitle:"🏆 Leaderboard", lbNoData:"No scores yet — be the first!"
+};
+
+/* ---------- state ---------- */
+let S = {
+  screen:"intro", name:"", nameInput:"", country:"", org:"", role:"",
+  zone:1, zoneQs:[], qIdx:0, score:0, lives:3, sel:null, shown:false,
+  done:[], hits:0, streak:0, best:0, zStart:0, zScores:{}, tapLogo:0, adminPIN:"",
+  z5Idx:0, z5Ans:[], z5Profile:null, z7Idx:0, z7Ans:[], z7Profile:null,
+  conceptZone:null, mePlayers:[], meLoading:false, zoneCompleteData:null,
+  hintUsed:false, hintText:"", timeLeft:30, timedOut:false, wrongAnswers:[],
+  certLoading:false
+};
+let timerRef = null;
+let picking = false;
+
+function shuffle(arr){ return [...arr].sort(()=>Math.random()-0.5); }
+function cur(){ return S.zoneQs[S.qIdx]; }
+function zData(){ return ZONES.find(z=>z.id===S.zone); }
+function total(){ return Q.length; }
+function pct(){ return Math.round((S.hits/total())*100); }
+function isBoss(){ return cur() && cur().p >= 30; }
+function adminOk(){ return S.adminPIN === CONFIG.ADMIN_PIN; }
+
+function computeProfile(answers, dims, questions){
+  const buckets={}; dims.forEach(d=>buckets[d.id]=[]);
+  questions.forEach((q,i)=>{ let v=answers[i]||3; if(q.reverse) v=6-v; buckets[q.dim].push(v); });
+  const scores={}; dims.forEach(d=>{ const a=buckets[d.id]; scores[d.id]=Math.round(((a.reduce((x,y)=>x+y,0)/a.length-1)/4)*100); });
+  const overall=Math.round(Object.values(scores).reduce((a,b)=>a+b,0)/dims.length);
+  const strongest=dims.reduce((best,d)=>scores[d.id]>scores[best.id]?d:best,dims[0]);
+  return {scores, overall, strongest};
+}
+function toolkitLevel(o){
+  if(o<40) return {level:"Emerging Practitioner 🌱", desc:"You are building your practitioner foundation, awareness is the first tool.", alp:"Start a 4-week equity reflection journal."};
+  if(o<65) return {level:"Developing Practitioner 📚", desc:"You have a growing toolkit and are beginning to apply it in real contexts.", alp:"Design and pilot a classroom or community intervention."};
+  if(o<85) return {level:"Skilled Practitioner ⭐", desc:"You deploy equity tools with confidence and facilitate across difference.", alp:"Deploy RUZIVO in your school or ward, train 3–5 peer facilitators."};
+  return {level:"Expert Practitioner 🏆", desc:"You are equipped to train others, design DEI systems and lead institutional change.", alp:"Contribute to a PGCN position paper or propose a curriculum module to MoPSE."};
+}
+function deiProfileLabel(o){
+  if(o<40) return {profile:"Inclusive Thinker 🌱", tagline:"You are building awareness, the essential first step toward equity practice.", alp:"Keep a bias journal and attend one community DEI dialogue."};
+  if(o<65) return {profile:"Equity Practitioner 📚", tagline:"You apply DEI knowledge into real, deliberate action.", alp:"Deploy RUZIVO with a community group and bring it back to your PGCN or TFZ network."};
+  if(o<85) return {profile:"Community Change Leader ⭐", tagline:"You lead change within your community and bring others with you.", alp:"Train 5 peer DEI facilitators in your district and present at a network event."};
+  return {profile:"Systems Transformation Champion 🏆", tagline:"You are positioned to drive systemic, institutional change.", alp:"Contribute to PGCN's Annual State of Gender Equality Report or submit a policy brief."};
+}
+
+/* ---------- backend / M&E ---------- */
+async function savePlayer(deiProf){
+  const data = {
+    timestamp:new Date().toISOString(), name:S.name, country:S.country, org:S.org, role:S.role,
+    lang:"en", score:S.score, pct:pct(), deiProfile:(deiProf&&deiProf.profile)||"—",
+    practitionerLevel:(S.z5Profile&&S.z5Profile.level)||"—", zonesCompleted:S.done.length+2
+  };
+  if(CONFIG.API_URL){
+    try{
+      await fetch(CONFIG.API_URL, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(data)});
+    }catch(e){ console.warn("Backend save failed, falling back to local storage.", e); }
+  }
+  try{
+    const local = JSON.parse(localStorage.getItem("ruzivo_players")||"[]");
+    local.push(data);
+    localStorage.setItem("ruzivo_players", JSON.stringify(local));
+  }catch(e){}
+}
+
+async function loadME(){
+  S.meLoading = true; render();
+  let players = [];
+  if(CONFIG.API_URL){
+    try{
+      const res = await fetch(CONFIG.API_URL + "?action=list");
+      const json = await res.json();
+      if(json.ok) players = json.players.map(p=>({...p, score:Number(p.score)||0, pct:Number(p.pct)||0}));
+    }catch(e){ console.warn("Backend fetch failed, showing local data only.", e); }
+  }
+  if(players.length===0){
+    try{ players = JSON.parse(localStorage.getItem("ruzivo_players")||"[]"); }catch(e){}
+  }
+  S.mePlayers = players.sort((a,b)=> new Date(b.timestamp)-new Date(a.timestamp));
+  S.meLoading = false;
+  render();
+}
+
+/* ---------- certificate: PGCN blue / green / white ---------- */
+function buildCert(){
+  const W=1200,H=860;
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+  const ctx=cv.getContext('2d');
+  // white base
+  ctx.fillStyle="#ffffff"; ctx.fillRect(0,0,W,H);
+  // soft blue-green corner washes
+  const g1=ctx.createRadialGradient(0,0,0,0,0,700); g1.addColorStop(0,"rgba(74,144,217,0.12)"); g1.addColorStop(1,"rgba(74,144,217,0)");
+  ctx.fillStyle=g1; ctx.fillRect(0,0,W,H);
+  const g2=ctx.createRadialGradient(W,H,0,W,H,700); g2.addColorStop(0,"rgba(39,174,96,0.14)"); g2.addColorStop(1,"rgba(39,174,96,0)");
+  ctx.fillStyle=g2; ctx.fillRect(0,0,W,H);
+  // border: blue outer, green inner
+  ctx.strokeStyle="#4A90D9"; ctx.lineWidth=8; ctx.strokeRect(16,16,W-32,H-32);
+  ctx.strokeStyle="#27AE60"; ctx.lineWidth=2; ctx.strokeRect(30,30,W-60,H-60);
+  [[50,50],[W-50,50],[50,H-50],[W-50,H-50]].forEach(([x,y])=>{ ctx.beginPath(); ctx.arc(x,y,6,0,Math.PI*2); ctx.fillStyle="#27AE60"; ctx.fill(); });
+
+  // header band
+  ctx.fillStyle="#0f2233"; ctx.fillRect(30,30,W-60,110);
+  ctx.fillStyle="#ffffff"; ctx.font="bold 22px Georgia"; ctx.textAlign="center";
+  ctx.fillText("PEACE, GENDER AND CLIMATE NETWORK", W/2, 78);
+  ctx.fillStyle="#7EC8E3"; ctx.font="11px Arial";
+  ctx.fillText("PGCN  ·  Create | Initiate | Innovate | Leaving No One Behind", W/2, 100);
+  ctx.fillStyle="#27AE60"; ctx.font="bold 10px Arial";
+  ctx.fillText("⬡ EGSI CERTIFIED 2026", W/2, 122);
+
+  ctx.fillStyle="#0f2233"; ctx.font="bold 36px Georgia";
+  ctx.fillText("Certificate of Completion", W/2, 205);
+  ctx.strokeStyle="#4A90D9"; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(220,222); ctx.lineTo(W-220,222); ctx.stroke();
+  ctx.fillStyle="#555"; ctx.font="13px Arial";
+  ctx.fillText("RUZIVO DEI Knowledge Challenge", W/2, 244);
+  ctx.fillText("This is to certify that", W/2, 285);
+
+  ctx.fillStyle="#27AE60"; ctx.font="bold 48px Georgia";
+  ctx.fillText(S.name || "Participant", W/2, 345);
+  const nw = ctx.measureText(S.name||"Participant").width;
+  ctx.strokeStyle="#4A90D9"; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(W/2-nw/2-20,360); ctx.lineTo(W/2+nw/2+20,360); ctx.stroke();
+
+  ctx.fillStyle="#444"; ctx.font="13px Arial";
+  ctx.fillText("has successfully completed the RUZIVO DEI Knowledge Challenge", W/2, 396);
+  ctx.fillText("and demonstrated knowledge, reflection and readiness for inclusive leadership.", W/2, 415);
+  if(S.country || S.org){
+    ctx.fillStyle="#888"; ctx.font="11px Arial";
+    ctx.fillText(`${S.country||""}${S.country&&S.org?" · ":""}${S.org||""}${S.role?" · "+S.role:""}`, W/2, 435);
+  }
+
+  const stats=[
+    {l:"SCORE", v:S.score+" pts", c:"#4A90D9"},
+    {l:"ACCURACY", v:pct()+"%", c:"#27AE60"},
+    {l:"PRACTITIONER", v:(S.z5Profile&&(S.z5Profile.level||"").replace(/[^\w\s]/g,"").trim().split(" ").slice(0,2).join(" "))||"—", c:"#27AE60"},
+    {l:"DEI PROFILE", v:(S.z7Profile&&(S.z7Profile.profile||"").replace(/[^\w\s]/g,"").trim().split(" ").slice(0,2).join(" "))||"—", c:"#16A085"}
+  ];
+  const bw=222,bh=64,bG=18,tBW=stats.length*(bw+bG)-bG,bSX=(W-tBW)/2;
+  stats.forEach((s,i)=>{
+    const bx=bSX+i*(bw+bG), by=465;
+    ctx.fillStyle="#F4FAF6"; ctx.fillRect(bx,by,bw,bh);
+    ctx.strokeStyle=s.c+"55"; ctx.lineWidth=1; ctx.strokeRect(bx,by,bw,bh);
+    ctx.fillStyle=s.c; ctx.font="bold 20px Arial"; ctx.textAlign="center";
+    ctx.fillText(s.v, bx+bw/2, by+28);
+    ctx.fillStyle="#777"; ctx.font="9px Arial";
+    ctx.fillText(s.l, bx+bw/2, by+47);
+  });
+
+  ctx.strokeStyle="#e0e0e0"; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(80,565); ctx.lineTo(W-80,565); ctx.stroke();
+  ctx.fillStyle="#4A90D9"; ctx.font="bold 10px Arial"; ctx.fillText("EGSI CERTIFICATION STATEMENT", W/2, 588);
+  ctx.fillStyle="#888"; ctx.font="10.5px Arial";
+  ctx.fillText("Issued under the Earth Gaming Standards International (EGSI) framework,", W/2, 606);
+  ctx.fillText("developed and administered by the Peace, Gender and Climate Network (PGCN).", W/2, 622);
+
+  const tags=["SDG 5","SDG 13","SDG 16","Agenda 2063","2030 Agenda","TFA","TFZ","AIIDEV Africa","UNDP","ZOU","MBIMB","IEP"];
+  ctx.font="bold 9px Arial"; let tx=90, ty=645;
+  tags.forEach(tag=>{
+    const tw=ctx.measureText(tag).width+16;
+    if(tx+tw>W-90){ tx=90; ty+=22; }
+    ctx.fillStyle="#EAF4EE"; ctx.fillRect(tx,ty,tw,17);
+    ctx.fillStyle="#27AE60"; ctx.textAlign="center"; ctx.fillText(tag, tx+tw/2, ty+11);
+    tx+=tw+5;
+  });
+
+  const sigY=765;
+  ctx.strokeStyle="#ddd"; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(100,sigY); ctx.lineTo(390,sigY); ctx.stroke();
+  ctx.fillStyle="#0f2233"; ctx.font="bold 12px Arial"; ctx.textAlign="center";
+  ctx.fillText("Kingdom Gwangwava", 245, sigY+18);
+  ctx.fillStyle="#27AE60"; ctx.font="10px Arial"; ctx.fillText("Founder & Executive Director, PGCN", 245, sigY+34);
+
+  ctx.fillStyle="#888"; ctx.font="10px Arial";
+  ctx.fillText("Date of Issue", W/2, sigY+8);
+  ctx.fillStyle="#0f2233"; ctx.font="bold 12px Arial";
+  ctx.fillText(new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}), W/2, sigY+26);
+
+  ctx.beginPath(); ctx.moveTo(810,sigY); ctx.lineTo(1100,sigY); ctx.stroke();
+  ctx.fillStyle="#0f2233"; ctx.font="bold 12px Arial";
+  ctx.fillText("EGSI Certification Board", 955, sigY+18);
+  ctx.fillStyle="#4A90D9"; ctx.font="10px Arial";
+  ctx.fillText("Earth Gaming Standards International", 955, sigY+34);
+
+  ctx.fillStyle="#aaa"; ctx.font="9px Arial";
+  ctx.fillText("Create · Initiate · Innovate · Leaving No One Behind", W/2, 830);
+  return cv;
+}
+
+/* ---------- game logic ---------- */
+function startTimer(){
+  clearInterval(timerRef); S.timeLeft=30; S.timedOut=false;
+  timerRef = setInterval(()=>{
+    S.timeLeft = Math.max(0, S.timeLeft-1);
+    if(S.timeLeft===0 && !S.shown && !picking){
+      clearInterval(timerRef); picking=true; S.shown=true; S.timedOut=true;
+      S.lives=Math.max(0,S.lives-1); S.streak=0;
+      const q=cur(); const corr = q.t==="tf" ? (q.a?"TRUE ✓":"FALSE ✗") : q.o[q.a];
+      S.wrongAnswers.push({q:q.q, correct:corr, your:UI.timesUp, exp:q.e});
+    }
+    render();
+  },1000);
+}
+
+function launchZone(zId){
+  const zInfo = ZONES.find(z=>z.id===zId);
+  S.wrongAnswers=[];
+  if(zInfo.type==="toolkit"){ S.z5Idx=0; S.z5Ans=[]; picking=false; S.screen="toolkit"; }
+  else{
+    S.zoneQs = shuffle(Q.filter(q=>q.z===zId)); S.zone=zId; S.qIdx=0; S.sel=null; S.shown=false;
+    S.hintUsed=false; S.hintText=""; S.timedOut=false; S.zStart=S.score; S.screen="game";
+    startTimer();
+  }
+  render();
+}
+function startZone(zId){
+  const zInfo = ZONES.find(z=>z.id===zId);
+  if(zInfo.type==="psychometric"){ S.z7Idx=0; S.z7Ans=[]; picking=false; S.screen="psychometric"; }
+  else{ S.conceptZone=zId; S.screen="concept"; }
+  render();
+}
+function pick(i){
+  if(S.shown || picking) return;
+  clearInterval(timerRef); picking=true; S.sel=i; S.shown=true; S.timedOut=false;
+  const q=cur(); const ok = q.t==="tf" ? (i===0)===q.a : i===q.a;
+  if(ok){
+    const b=S.streak>=2?5:0; S.score+=q.p+b; S.hits++;
+    S.streak++; S.best=Math.max(S.best,S.streak);
+  }else{
+    S.lives=Math.max(0,S.lives-1); S.streak=0;
+    const corr = q.t==="tf" ? (q.a?"TRUE ✓":"FALSE ✗") : q.o[q.a];
+    S.wrongAnswers.push({q:q.q, correct:corr, your:q.o?q.o[i]:(i===0?"TRUE ✓":"FALSE ✗"), exp:q.e});
+  }
+  render();
+}
+function nextQ(){
+  clearInterval(timerRef); picking=false; S.hintUsed=false; S.hintText="";
+  if(S.qIdx+1 < S.zoneQs.length){
+    S.qIdx++; S.sel=null; S.shown=false; S.timedOut=false; startTimer();
+  }else{
+    const earned = S.score - S.zStart;
+    S.zScores[S.zone]=earned;
+    S.zoneCompleteData={zoneId:S.zone, score:earned};
+    S.screen = S.wrongAnswers.length>0 ? "wrongreview" : "zonecomplete";
+  }
+  render();
+}
+function useHint(){
+  if(S.hintUsed) return;
+  S.hintUsed=true; S.score=Math.max(0,S.score-5);
+  S.hintText=(cur().e||"").split(".")[0]+"...";
+  render();
+}
+function pickLikert(val,type){
+  if(picking) return; picking=true;
+  if(type==="toolkit"){
+    S.z5Ans[S.z5Idx]=val;
+    setTimeout(()=>{
+      picking=false;
+      if(S.z5Idx+1<PSYCH_Q5.length){ S.z5Idx++; }
+      else{
+        const r=computeProfile(S.z5Ans,PRACTITIONER_DIMS,PSYCH_Q5);
+        S.z5Profile={...r, ...toolkitLevel(r.overall)};
+        if(!S.done.includes(5)) S.done.push(5);
+        S.screen="map";
+      }
+      render();
+    },200);
+  }else{
+    S.z7Ans[S.z7Idx]=val;
+    setTimeout(()=>{
+      picking=false;
+      if(S.z7Idx+1<PSYCH_Q7.length){ S.z7Idx++; }
+      else{
+        const r=computeProfile(S.z7Ans,DIMENSIONS,PSYCH_Q7);
+        const prof={...r, ...deiProfileLabel(r.overall)};
+        S.z7Profile=prof;
+        if(!S.done.includes(7)) S.done.push(7);
+        savePlayer(prof);
+        S.screen="report";
+      }
+      render();
+    },200);
+  }
+  render();
+}
+function resetAll(){
+  S.score=0; S.lives=3; S.done=[]; S.hits=0; S.streak=0; S.best=0; S.zScores={};
+  S.z5Profile=null; S.z7Profile=null; S.certLoading=false; S.zoneQs=[]; S.wrongAnswers=[];
+  clearInterval(timerRef);
+}
+
+/* ---------- render helpers ---------- */
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function livesHtml(){ return S.lives>0 ? "❤️".repeat(S.lives) : "💀"; }
+
+function contactBox(){
+  return `<div class="contact-box"><p style="color:rgba(255,255,255,.75);font-weight:bold;">📞 Kingdom Gwangwava · PGCN</p><p style="color:${C.gold};">pgcnglobal@gmail.com</p></div>`;
+}
+function footerNote(t){ return `<p class="footer-note">${t}</p>`; }
+
+function screenIntro(){
+  return `
+  <div class="screen center">
+    <div class="maxw">
+      <div onclick="S.tapLogo++;render()" style="font-size:50px;margin-bottom:5px;cursor:pointer;">🌍</div>
+      <p class="eyebrow">Peace, Gender and Climate Network</p>
+      <h1>RUZIVO</h1>
+      <p class="sub">DEI Knowledge Challenge</p>
+      <p style="color:rgba(255,255,255,.2);font-size:9px;margin-bottom:3px;">PGCN · TFZ · AIIDEV · ZOU · MBIMB · IEP · UNDP · 2026</p>
+      <p class="tag">⬡ EGSI CERTIFIED 2026</p>
+      ${S.tapLogo>=5?`
+        <div style="margin-bottom:10px;padding:12px;border-radius:12px;background:rgba(0,0,0,.5);border:1px solid ${C.gold}44;">
+          <p style="color:${C.gold};font-size:10px;margin-bottom:5px;">🔐 Admin PIN</p>
+          <input id="adminPinInput" value="${esc(S.adminPIN)}" aria-label="Admin PIN" placeholder="PGCN2026" oninput="S.adminPIN=this.value" style="text-align:center;"/>
+          ${adminOk()?`<div style="display:flex;gap:6px;margin-top:6px;justify-content:center;">
+            <button class="btn" style="width:auto;background:${C.teal};color:#fff;padding:6px 12px;font-size:10px;" onclick="loadME();S.screen='me';render()">📊 M&E</button>
+            <button class="btn" style="width:auto;padding:6px 12px;font-size:10px;" onclick="loadME();S.screen='leaderboard';render()">🏆 Leaderboard</button>
+          </div>`:""}
+        </div>`:""}
+      <div class="zones-grid">
+        ${ZONES.map(z=>`<div class="zone-chip" style="background:${z.color}15;border:1px solid ${z.color}33;"><div class="ic">${z.icon}</div><p style="color:${z.color};">${z.tag}</p></div>`).join("")}
+      </div>
+      <div class="feature-row"><div class="feature-grid">
+        ${[["📖","Learn First",C.blue],["⏱️","30s Timer",C.orange],["🔍","Review Missed",C.purple],["🏆","Leaderboard",C.gold]]
+          .map(([i,l,c])=>`<div><p style="font-size:14px;">${i}</p><p style="color:${c};">${l}</p></div>`).join("")}
+      </div></div>
+      <input id="nameInput" value="${esc(S.nameInput)}" aria-label="${UI.name}" autocomplete="name" placeholder="${UI.name}" oninput="S.nameInput=this.value" />
+      <button class="btn" onclick="const v=document.getElementById('nameInput').value.trim(); if(v){S.name=v;S.screen='register';render();}">${UI.begin}</button>
+      ${contactBox()}
+      <p style="color:rgba(255,255,255,.55);font-size:9px;margin-top:6px;">Create · Initiate · Innovate · Leaving No One Behind</p>
+    </div>
+  </div>`;
+}
+
+function screenRegister(){
+  return `
+  <div class="screen center">
+    <div class="maxw">
+      <p style="color:${C.gold};font-size:22px;">👋</p>
+      <p class="eyebrow">Welcome, ${esc(S.name)}</p>
+      <h2 style="font-size:17px;font-weight:900;margin-bottom:3px;">${UI.register}</h2>
+      <p style="color:rgba(255,255,255,.7);font-size:10px;margin-bottom:14px;">This helps PGCN track reach and impact across contexts.</p>
+      <div style="text-align:left;">
+        <label for="countryInput" class="field-label">${UI.country} *</label>
+        <input id="countryInput" value="${esc(S.country)}" autocomplete="country-name" placeholder="e.g. Zimbabwe, Bolivia, France..." oninput="S.country=this.value;updateBeginBtn()" style="margin-bottom:8px;"/>
+        <label for="orgSelect" class="field-label">${UI.org}</label>
+        <select id="orgSelect" onchange="S.org=this.value" style="margin-bottom:8px;">
+          <option value="">Select organisation...</option>
+          ${ORGS.map(o=>`<option ${S.org===o?'selected':''}>${esc(o)}</option>`).join("")}
+        </select>
+        <label for="roleSelect" class="field-label">${UI.role}</label>
+        <select id="roleSelect" onchange="S.role=this.value">
+          <option value="">Select role...</option>
+          ${ROLES.map(r=>`<option ${S.role===r?'selected':''}>${esc(r)}</option>`).join("")}
+        </select>
+      </div>
+      <button id="beginBtn" class="btn" ${S.country.trim()?'':'disabled style="opacity:.4;"'} onclick="S.screen='map';render()">${UI.begin}</button>
+      <button class="btn ghost" onclick="S.screen='map';render()">Skip registration →</button>
+    </div>
+  </div>`;
+}
+
+function screenConcept(){
+  const zInfo = ZONES.find(z=>z.id===S.conceptZone);
+  const concepts = ZONE_CONCEPTS[S.conceptZone]||[];
+  return `
+  <div class="screen" style="padding:0;">
+    <div class="topbar"><div><p style="color:${zInfo.color};font-size:10px;font-weight:bold;">${zInfo.icon} ${zInfo.name}</p><p style="color:rgba(255,255,255,.7);font-size:9px;">${UI.keyLearning}</p></div></div>
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:12px 18px;">
+      <div style="text-align:center;margin-bottom:12px;"><p style="font-size:28px;margin-bottom:4px;">${zInfo.icon}</p><h2 style="font-size:17px;font-weight:900;margin-bottom:3px;">${zInfo.name}</h2><p style="color:${zInfo.color};font-size:9px;">${zInfo.sub}</p></div>
+      ${concepts.map(c=>`<div class="concept-card" style="background:linear-gradient(135deg,${zInfo.color}14,${zInfo.color}06);border:1px solid ${zInfo.color}35;"><p class="ck" style="color:${zInfo.color};">💡 ${esc(c.k)}</p><p class="cv">${esc(c.v)}</p></div>`).join("")}
+    </div>
+    <div style="padding:10px 16px 22px;">
+      <button class="btn" style="background:${zInfo.color};" onclick="launchZone(${S.conceptZone})">${UI.startZone}</button>
+      <button class="btn ghost" onclick="launchZone(${S.conceptZone})">${UI.skipConcept}</button>
+    </div>
+  </div>`;
+}
+
+function screenMap(){
+  const allKnDone = [1,2,3,4,5,6].every(id=>S.done.includes(id));
+  return `
+  <div class="screen" style="padding:14px 14px 32px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+      <div><p class="eyebrow">RUZIVO · ${esc(S.name)}</p><p style="font-weight:900;font-size:22px;">${S.score} pts</p><p style="color:rgba(255,255,255,.7);font-size:10px;">${S.hits}/${total()} correct ${S.country?('· '+esc(S.country)):''}</p></div>
+      <div style="text-align:right;"><p class="lives">${livesHtml()}</p>
+        <button class="btn" style="width:auto;background:${C.gold}22;border:1px solid ${C.gold}44;color:${C.gold};padding:4px 10px;font-size:9px;margin-top:4px;" onclick="loadME();S.screen='leaderboard';render()">🏆 Leaderboard</button>
+      </div>
+    </div>
+    <p style="font-weight:bold;font-size:15px;margin-bottom:8px;">${UI.map}</p>
+    ${ZONES.map((z,i)=>{
+      const isDone=S.done.includes(z.id), isLocked=!adminOk()&&i>0&&!S.done.includes(z.id-1), isActive=!isDone&&!isLocked, isSpecial=z.type==="toolkit"||z.type==="psychometric";
+      return `<button class="zonebtn ${isDone?'done':isLocked?'locked':'active'}" style="background:${isDone?z.color+'22':isActive?z.color+'12':'rgba(255,255,255,.03)'};border-color:${isDone?z.color:isActive?z.color+'55':'rgba(255,255,255,.05)'};" ${isActive?`onclick="startZone(${z.id})"`:''}>
+        <div class="zone-icon" style="background:${z.color}22;">${isDone?'✅':isLocked?'🔒':z.icon}</div>
+        <div class="zone-info"><p class="zlabel" style="color:${z.color};">Zone ${z.id} · ${z.tag}${isSpecial?' · No Right/Wrong':''}</p><p class="zname">${z.name}</p><p class="zsub">${z.sub}</p></div>
+        <div class="zone-right">${isDone?`<p class="zscore" style="color:${z.color};">${!isSpecial?('+'+(S.zScores[z.id]||0)+'pts'):'✓'}</p>`:''}${isActive?`<p style="color:${z.color};font-size:10px;font-weight:bold;">START →</p>`:''}<p class="zcount">${!isSpecial?(Q.filter(q=>q.z===z.id).length+' Qs'):(z.id===5?PSYCH_Q5.length:PSYCH_Q7.length)+' items'}</p></div>
+      </button>`;
+    }).join("")}
+    ${allKnDone?`<button class="btn" onclick="startZone(7)">🧭 Complete DEI Profile → View Final Report</button>`:''}
+    ${S.done.includes(7)?`<button class="btn" style="background:${C.teal};color:#fff;" onclick="S.screen='report';render()">${UI.claim}</button>`:''}
+    ${(S.lives===0&&!allKnDone)?`<div style="margin-top:12px;padding:12px;border-radius:12px;background:#c0392b18;border:1px solid #c0392b55;text-align:center;"><p style="font-weight:bold;margin-bottom:7px;">${UI.noLives}</p><button class="btn" style="width:auto;padding:7px 18px;" onclick="resetAll();render()">${UI.restart}</button></div>`:''}
+    ${footerNote("PGCN · EGSI Certified · pgcnglobal@gmail.com")}
+  </div>`;
+}
+
+function screenZoneComplete(){
+  const z = ZONES.find(zz=>zz.id===S.zoneCompleteData.zoneId);
+  return `
+  <div class="screen center" style="position:relative;overflow:hidden;">
+    <div id="confettiHost"></div>
+    <div style="max-width:360px;text-align:center;z-index:10;">
+      <div style="font-size:60px;margin-bottom:10px;">${z.icon}</div>
+      <p style="color:${z.color};font-size:10px;font-weight:bold;letter-spacing:.15em;text-transform:uppercase;margin-bottom:4px;">Zone ${z.id} · ${z.tag}</p>
+      <h2 style="font-weight:900;font-size:26px;margin-bottom:6px;">${UI.zoneComplete}</h2>
+      <p style="color:rgba(255,255,255,.6);font-size:13px;margin-bottom:14px;">${z.name}</p>
+      <div style="border-radius:18px;padding:16px 28px;background:${z.color}25;border:2px solid ${z.color};margin-bottom:10px;display:inline-block;">
+        <p style="color:${z.color};font-size:44px;font-weight:900;line-height:1;">+${S.zoneCompleteData.score}</p>
+        <p style="color:rgba(255,255,255,.8);font-size:11px;margin-top:3px;">pts earned</p>
+      </div>
+      <p style="color:rgba(255,255,255,.75);font-size:11px;margin-bottom:16px;">${S.score} pts total · ${S.hits}/${total()} correct overall</p>
+      <button class="btn" style="background:${z.color};" onclick="if(!S.done.includes(${z.id}))S.done.push(${z.id});S.zoneCompleteData=null;S.screen='map';render()">${UI.continueJourney}</button>
+    </div>
+  </div>`;
+}
+
+function screenWrongReview(){
+  const z = ZONES.find(zz=>zz.id===S.zoneCompleteData.zoneId);
+  return `
+  <div class="screen" style="padding:16px 16px 32px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div><p style="color:${z.color};font-size:10px;font-weight:bold;">${z.icon} ${z.name}</p><p style="font-weight:900;font-size:17px;">Review Before Celebrating</p></div>
+      <p style="color:${C.red};font-size:10px;font-weight:bold;">${S.wrongAnswers.length} missed</p>
+    </div>
+    ${S.wrongAnswers.map(w=>`
+      <div style="border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.1);margin-bottom:12px;">
+        <div style="padding:10px 14px;background:rgba(255,255,255,.04);"><p style="color:rgba(255,255,255,.7);font-size:12px;line-height:1.55;">${esc(w.q)}</p></div>
+        <div style="padding:8px 14px;background:${C.red}10;border-top:1px solid ${C.red}33;"><p style="color:${C.red};font-size:10px;font-weight:bold;">✗ ${esc(w.your)}</p></div>
+        <div style="padding:8px 14px;background:${C.green}10;border-top:1px solid ${C.green}33;"><p style="color:${C.green};font-size:10px;font-weight:bold;">✓ ${esc(w.correct)}</p></div>
+        <div style="padding:8px 14px;background:rgba(255,255,255,.02);border-top:1px solid rgba(255,255,255,.06);"><p style="color:rgba(255,255,255,.55);font-size:10px;line-height:1.55;">${esc(w.exp)}</p></div>
+      </div>`).join("")}
+    <button class="btn" style="background:${z.color};" onclick="S.wrongAnswers=[];S.screen='zonecomplete';render()">${UI.continueJourney} 🎉</button>
+  </div>`;
+}
+
+function screenGame(){
+  const q = cur(); if(!q) return screenMap();
+  const boss = isBoss(); const cardColor = boss ? C.red : zData().color;
+  const badge = boss ? UI.bossLevel : q.t==="scenario" ? "📋 "+UI.scenario : q.t==="tf" ? "⚡ "+UI.tf : "❓ "+UI.knowledge;
+  const opts = q.t==="tf" ? ["TRUE ✓","FALSE ✗"] : q.o;
+  const timerPct = (S.timeLeft/30)*100;
+  const timerColor = S.timeLeft<=5?C.red:S.timeLeft<=10?C.orange:C.green;
+  return `
+  <div class="screen" style="padding:0;">
+    <div class="topbar">
+      <div><p style="color:${cardColor};font-size:10px;font-weight:bold;">${zData().icon} ${zData().name}</p><p style="color:rgba(255,255,255,.7);font-size:9px;">Q${S.qIdx+1}/${S.zoneQs.length} · ${UI.score}: ${S.score}</p></div>
+      <div style="display:flex;align-items:center;gap:7px;">
+        <div class="timer-ring" style="border:3px solid ${timerColor};background:conic-gradient(${timerColor} ${timerPct}%,rgba(255,255,255,.08) 0%);">
+          <div class="timer-inner" style="color:${timerColor};">${S.timeLeft}</div>
+        </div>
+        ${S.streak>=2?`<span style="font-size:9px;padding:2px 7px;border-radius:20px;font-weight:bold;background:${C.gold}33;color:${C.gold};">🔥×${S.streak}</span>`:''}
+        <span class="lives">${livesHtml()}</span>
+      </div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" style="width:${((S.qIdx+1)/S.zoneQs.length)*100}%;background:${cardColor};"></div></div>
+    <div style="padding:8px 15px;flex:1;overflow-y:auto;">
+      ${boss?`<div style="border-radius:12px;padding:9px 14px;background:linear-gradient(135deg,${C.red}30,${C.gold}15);border:2px solid ${C.red};margin-bottom:9px;text-align:center;"><p style="color:${C.red};font-weight:900;font-size:13px;letter-spacing:.08em;">⚡ BOSS LEVEL ⚡</p><p style="color:rgba(255,255,255,.8);font-size:10px;">${UI.bossDesc}</p></div>`:''}
+      <div class="qcard" style="background:linear-gradient(135deg,${cardColor}${boss?'25':'16'},${cardColor}06);border:1px solid ${cardColor}${boss?'66':'40'};">
+        <span class="badge" style="background:${cardColor}30;color:${cardColor};">${badge} · +${q.p}pts${(S.streak>=2&&!S.shown)?' +5🔥':''}</span>
+        <p class="qtext">${esc(q.q)}</p>
+      </div>
+      ${opts.map((opt,i)=>{
+        const isAns = q.t==="tf" ? (i===0)===q.a : i===q.a;
+        let bg="rgba(255,255,255,.05)",bd="rgba(255,255,255,.08)",fc="rgba(255,255,255,.8)";
+        if(S.shown){ if(isAns){bg="#27AE6015";bd="#27AE60";fc="#27AE60";} else if(S.sel===i){bg="#c0392b15";bd="#c0392b";fc="#e74c3c";} }
+        else if(S.sel===i){ bg=cardColor+"18"; bd=cardColor; fc="#fff"; }
+        return `<button class="opt" style="background:${bg};border-color:${bd};color:${fc};" onclick="pick(${i})" ${S.shown?'disabled':''}>
+          ${q.t!=="tf"?`<span class="oletter" style="color:${S.shown&&isAns?'#27AE60':S.shown&&S.sel===i?'#e74c3c':cardColor};">${String.fromCharCode(65+i)}.</span>`:''}
+          ${esc(opt)}<span class="oflag">${S.shown&&isAns?'✅':S.shown&&S.sel===i?'❌':''}</span>
+        </button>`;
+      }).join("")}
+      ${(!S.shown&&!S.hintUsed)?`<button class="hint-btn" onclick="useHint()">${UI.hint}</button>`:''}
+      ${(S.hintUsed&&S.hintText&&!S.shown)?`<div style="margin-top:8px;padding:10px;border-radius:10px;background:${C.gold}10;border:1px solid ${C.gold}33;"><p style="color:${C.gold};font-size:9px;font-weight:bold;margin-bottom:3px;">${UI.hintUsed}</p><p style="color:rgba(255,255,255,.6);font-size:11px;line-height:1.5;">${esc(S.hintText)}</p></div>`:''}
+      ${S.shown?`<div class="explain" style="background:${(S.timedOut? '#c0392b12' : (isOk(q)?'#27AE6012':'#c0392b12'))};border:1px solid ${(S.timedOut?'#c0392b40':(isOk(q)?'#27AE6040':'#c0392b40'))};">
+        <p style="color:${S.timedOut?C.red:(isOk(q)?'#27AE60':'#e74c3c')};font-weight:bold;font-size:10px;margin-bottom:4px;">${S.timedOut?UI.timesUp:(isOk(q)?('✅ '+UI.correct+' +'+q.p+(S.streak>=3?' +5🔥':'')+'pts'):('❌ '+UI.wrong))}</p>
+        <p style="color:rgba(255,255,255,.75);font-size:11px;line-height:1.65;">${esc(q.e)}</p>
+      </div>`:''}
+    </div>
+    ${S.shown?`<div style="padding:8px 15px 20px;"><button class="btn" style="background:${cardColor};margin-top:0;" onclick="nextQ()">${S.qIdx+1<S.zoneQs.length?UI.next:UI.done}</button></div>`:''}
+  </div>`;
+}
+function isOk(q){ if(S.sel===null) return null; return q.t==="tf" ? (S.sel===0)===q.a : S.sel===q.a; }
+
+function screenLikert(type){
+  const isTk = type==="toolkit"; const dims = isTk?PRACTITIONER_DIMS:DIMENSIONS; const qs = isTk?PSYCH_Q5:PSYCH_Q7;
+  const idx = isTk?S.z5Idx:S.z7Idx; const q = qs[idx]; const dim = dims.find(d=>d.id===q.dim);
+  return `
+  <div class="screen" style="padding:0;">
+    <div class="topbar"><div><p style="color:${dim.color};font-size:10px;font-weight:bold;">${isTk?'🧰 Practitioner Self-Check':'🧭 DEI Profile Assessment'}</p><p style="color:rgba(255,255,255,.7);font-size:9px;">Statement ${idx+1}/${qs.length}</p></div></div>
+    <div class="progress-track"><div class="progress-fill" style="width:${((idx+1)/qs.length)*100}%;background:${dim.color};"></div></div>
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:12px 18px;">
+      <div class="likert-card" style="background:linear-gradient(135deg,${dim.color}18,${dim.color}06);border:1px solid ${dim.color}40;">
+        <p style="font-size:22px;margin-bottom:5px;">${dim.icon}</p>
+        <p style="color:${dim.color};font-size:9px;font-weight:bold;letter-spacing:.06em;margin-bottom:6px;text-transform:uppercase;">${dim.label}</p>
+        <p style="color:rgba(255,255,255,.2);font-size:9px;margin-bottom:8px;">${UI.psychSub}</p>
+        <p style="color:#fff;font-weight:600;font-size:13px;line-height:1.65;">${esc(q.s)}</p>
+      </div>
+      ${UI.likert.map((label,i)=>`<button class="likert-opt" onclick="pickLikert(${i+1},'${type}')"><span class="likert-num" style="border-color:${dim.color};color:${dim.color};">${i+1}</span>${label}</button>`).join("")}
+    </div>
+  </div>`;
+}
+
+function screenLeaderboard(){
+  const sorted = [...S.mePlayers].sort((a,b)=>b.score-a.score);
+  const medals=["🥇","🥈","🥉"];
+  return `
+  <div class="screen" style="padding:16px 14px 32px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div><p style="color:${C.gold};font-size:16px;font-weight:900;">${UI.lbTitle}</p><p style="color:rgba(255,255,255,.75);font-size:9px;">RUZIVO · PGCN · Global</p></div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn" style="width:auto;padding:5px 10px;font-size:10px;" onclick="loadME()">🔄</button>
+        <button class="btn" style="width:auto;padding:5px 12px;font-size:10px;" onclick="S.screen='map';render()">← Back</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+      ${[["Total Players",sorted.length,C.blue],["Countries",new Set(sorted.map(p=>p.country).filter(Boolean)).size,C.green],["Avg Score",sorted.length?Math.round(sorted.reduce((a,b)=>a+b.score,0)/sorted.length):0,C.gold]]
+        .map(([l,v,c])=>`<div class="me-stat" style="background:${c}18;border:1px solid ${c}33;"><p style="color:${c};font-size:20px;font-weight:900;">${S.meLoading?'...':v}</p><p style="color:rgba(255,255,255,.7);font-size:8px;">${l}</p></div>`).join("")}
+    </div>
+    ${!CONFIG.API_URL?`<div style="border-radius:10px;padding:8px 12px;background:${C.gold}12;border:1px solid ${C.gold}33;margin-bottom:10px;"><p style="color:${C.gold};font-size:9px;">⚠️ No backend configured — showing this device's data only. Set CONFIG.API_URL to see players from other countries.</p></div>`:''}
+    ${sorted.length===0?`<div style="border-radius:14px;padding:24px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);text-align:center;"><p style="font-size:32px;margin-bottom:8px;">🏆</p><p style="color:rgba(255,255,255,.75);font-size:12px;">${UI.lbNoData}</p></div>`:
+      sorted.slice(0,20).map((p,i)=>`
+      <div class="lb-row" style="background:${i<3?C.gold+'10':'rgba(255,255,255,.04)'};border-color:${i<3?C.gold+'44':'rgba(255,255,255,.07)'};">
+        <span style="font-size:${i<3?20:13}px;font-weight:bold;color:${i<3?C.gold:'rgba(255,255,255,.3)'};min-width:24px;text-align:center;">${i<3?medals[i]:'#'+(i+1)}</span>
+        <div style="flex:1;"><p style="color:${p.name===S.name?'#27AE60':'#fff'};font-weight:bold;font-size:12px;">${esc(p.name)}${p.name===S.name?' 👈':''}</p><p style="color:rgba(255,255,255,.7);font-size:9px;">${esc(p.country||'—')} · ${esc(p.org||'—')} · ${esc(p.role||'—')}</p></div>
+        <div style="text-align:right;"><p style="color:${i<3?C.gold:C.blue};font-weight:900;font-size:14px;">${p.score}</p><p style="color:rgba(255,255,255,.25);font-size:8px;">${p.pct}%</p></div>
+      </div>`).join("")}
+    ${footerNote("Live data · PGCN EGSI Framework")}
+  </div>`;
+}
+
+function screenME(){
+  const countries=[...new Set(S.mePlayers.map(p=>p.country).filter(Boolean))];
+  const orgs=[...new Set(S.mePlayers.map(p=>p.org).filter(Boolean))];
+  return `
+  <div class="screen" style="padding:16px 14px 32px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div><p style="color:${C.gold};font-size:10px;font-weight:bold;">📊 ${UI.meTitle}</p><p style="color:rgba(255,255,255,.75);font-size:9px;">PGCN · EGSI · RUZIVO</p></div>
+      <button class="btn" style="width:auto;padding:5px 12px;font-size:11px;" onclick="S.screen='intro';render()">← Back</button>
+    </div>
+    ${!CONFIG.API_URL?`<div style="border-radius:10px;padding:8px 12px;background:${C.gold}12;border:1px solid ${C.gold}33;margin-bottom:10px;"><p style="color:${C.gold};font-size:9px;">⚠️ CONFIG.API_URL is empty. See apps-script-backend.gs to connect a real Google Sheet so players from other countries actually appear here.</p></div>`:''}
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">
+      ${[[UI.meTotalPlayers,S.mePlayers.length,C.blue],[UI.meCountries,countries.length,C.green],[UI.meOrgs,orgs.length,C.purple]]
+        .map(([l,v,c])=>`<div class="me-stat" style="background:${c}18;border:1px solid ${c}33;"><p style="color:${c};font-size:22px;font-weight:900;">${S.meLoading?'...':v}</p><p style="color:rgba(255,255,255,.75);font-size:9px;">${l}</p></div>`).join("")}
+    </div>
+    ${countries.length>0?`<div style="border-radius:12px;padding:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);margin-bottom:8px;"><p style="color:${C.green};font-size:9px;font-weight:bold;margin-bottom:5px;">🌍 Countries</p><div style="display:flex;flex-wrap:wrap;gap:4px;">${countries.map(c=>`<span style="padding:3px 8px;border-radius:20px;background:${C.green}22;color:${C.green};font-size:9px;">${esc(c)}</span>`).join("")}</div></div>`:''}
+    <div style="border-radius:12px;padding:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);">
+      <p style="color:${C.gold};font-size:9px;font-weight:bold;margin-bottom:7px;">🕒 ${UI.meRecent}</p>
+      ${S.mePlayers.length===0?`<p style="color:rgba(255,255,255,.7);font-size:11px;text-align:center;padding:10px 0;">${UI.meNoData}</p>`:
+        S.mePlayers.slice(0,10).map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);"><div><p style="color:#fff;font-size:11px;font-weight:bold;">${esc(p.name)}</p><p style="color:rgba(255,255,255,.7);font-size:9px;">${esc(p.country||'—')} · ${esc(p.org||'—')}</p></div><p style="color:${C.gold};font-size:10px;font-weight:bold;">${p.score}pts</p></div>`).join("")}
+    </div>
+    <button class="btn secondary" onclick="loadME()">🔄 Refresh</button>
+  </div>`;
+}
+
+function screenReport(){
+  const DimBar = (d,s)=>`<div class="dimbar-row"><div style="display:flex;justify-content:space-between;margin-bottom:2px;"><span style="color:rgba(255,255,255,.55);font-size:9px;">${d.icon} ${d.label}</span><span style="color:${d.color};font-size:9px;font-weight:bold;">${s}%</span></div><div class="dimbar-track"><div class="dimbar-fill" style="background:linear-gradient(90deg,${d.color}88,${d.color});width:${s}%;"></div></div></div>`;
+  return `
+  <div class="screen center" style="padding:18px 14px 36px;">
+    <div class="cert-wrap" style="border:2px solid ${C.blue};box-shadow:0 0 60px ${C.green}18;">
+      <div class="cert-header" style="background:linear-gradient(135deg,#0a1a2e,#08251a);">
+        <p style="color:${C.blue};font-size:8px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:3px;">Peace, Gender and Climate Network · EGSI Certified</p>
+        <div style="font-size:32px;margin:3px 0;">🏆</div>
+        <h2 style="font-weight:900;font-size:15px;margin-bottom:2px;">CERTIFICATE OF COMPLETION</h2>
+        <p style="color:rgba(255,255,255,.75);font-size:9px;margin-bottom:8px;">RUZIVO · PGCN · 2026</p>
+        <p style="color:rgba(255,255,255,.7);font-size:9px;margin-bottom:2px;">${UI.awarded}</p>
+        <p style="color:${C.green};font-size:22px;font-weight:900;margin-bottom:3px;">${esc(S.name)}</p>
+        ${(S.country||S.org)?`<p style="color:rgba(255,255,255,.7);font-size:9px;margin-bottom:5px;">${esc(S.country)}${S.country&&S.org?' · ':''}${esc(S.org)}${S.role?' · '+esc(S.role):''}</p>`:''}
+        <p style="color:rgba(255,255,255,.8);font-size:10px;line-height:1.55;margin-bottom:12px;">${UI.certBody}</p>
+        <div style="border-radius:13px;padding:12px;margin-bottom:10px;background:rgba(255,255,255,.04);border:1px solid ${C.blue}33;text-align:left;">
+          <p style="color:${C.blue};font-size:9px;font-weight:bold;letter-spacing:.06em;margin-bottom:8px;text-transform:uppercase;">📊 ${UI.knowledgeAch}</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+            ${[["Points",S.score,C.blue],["Accuracy",pct()+"%",C.green],["Best Streak","×"+S.best+"🔥",C.gold]]
+              .map(([l,v,c])=>`<div class="stat-box" style="background:${c}18;"><p style="color:${c};font-size:17px;font-weight:900;">${v}</p><p style="color:rgba(255,255,255,.7);font-size:8px;">${l}</p></div>`).join("")}
+          </div>
+        </div>
+        ${S.z5Profile?`<div style="border-radius:13px;padding:13px;margin-bottom:10px;background:linear-gradient(135deg,${C.green}12,${C.green}05);border:1px solid ${C.green}33;text-align:left;">
+          <p style="color:${C.green};font-size:9px;font-weight:bold;letter-spacing:.06em;margin-bottom:6px;text-transform:uppercase;">🧰 ${UI.practitioner}</p>
+          <p style="color:${C.green};font-size:15px;font-weight:900;margin-bottom:3px;">${S.z5Profile.level}</p>
+          <p style="color:rgba(255,255,255,.8);font-size:10px;margin-bottom:9px;line-height:1.5;">${S.z5Profile.desc}</p>
+          ${PRACTITIONER_DIMS.map(d=>DimBar(d,S.z5Profile.scores[d.id])).join("")}
+          <div style="border-radius:7px;padding:5px 8px;background:${S.z5Profile.strongest.color}22;margin-top:5px;"><p style="color:${S.z5Profile.strongest.color};font-size:9px;font-weight:bold;">${S.z5Profile.strongest.icon} ${UI.strength}: ${S.z5Profile.strongest.label}</p></div>
+        </div>`:''}
+        ${S.z7Profile?`<div style="border-radius:13px;padding:13px;margin-bottom:10px;background:linear-gradient(135deg,${C.teal}12,${C.teal}05);border:1px solid ${C.teal}33;text-align:left;">
+          <p style="color:${C.teal};font-size:9px;font-weight:bold;letter-spacing:.06em;margin-bottom:6px;text-transform:uppercase;">🧭 ${UI.deiProfile}</p>
+          <p style="color:${C.teal};font-size:15px;font-weight:900;margin-bottom:3px;">${S.z7Profile.profile}</p>
+          <p style="color:rgba(255,255,255,.8);font-size:10px;margin-bottom:9px;line-height:1.5;">${S.z7Profile.tagline}</p>
+          ${DIMENSIONS.map(d=>DimBar(d,S.z7Profile.scores[d.id])).join("")}
+          <div style="border-radius:7px;padding:5px 8px;background:${S.z7Profile.strongest.color}22;margin-top:5px;"><p style="color:${S.z7Profile.strongest.color};font-size:9px;font-weight:bold;">${S.z7Profile.strongest.icon} ${UI.strength}: ${S.z7Profile.strongest.label}</p></div>
+        </div>`:''}
+        ${S.z7Profile?`<div style="border-radius:13px;padding:13px;margin-bottom:12px;background:${C.gold}10;border:1px dashed ${C.gold}44;text-align:left;"><p style="color:${C.gold};font-size:9px;font-weight:bold;letter-spacing:.06em;margin-bottom:5px;text-transform:uppercase;">💡 ${UI.nextStep}</p><p style="color:rgba(255,255,255,.7);font-size:11px;line-height:1.65;">${S.z7Profile.alp}</p></div>`:''}
+        <div style="border-radius:12px;padding:11px;margin-bottom:10px;background:${C.green}10;border:1px solid ${C.green}33;text-align:center;"><p style="color:${C.green};font-size:10px;font-weight:900;letter-spacing:.08em;">⬡ EGSI CERTIFIED 2026</p><p style="color:rgba(255,255,255,.7);font-size:8px;margin-top:2px;">Earth Gaming Standards International · PGCN Game Architect</p></div>
+      </div>
+    </div>
+    <button class="btn" style="max-width:440px;margin-top:14px;background:linear-gradient(135deg,${C.blue},${C.green});color:#fff;" onclick="downloadCert()">${S.certLoading?'⏳ Generating...':'📄 Download PGCN Certificate'}</button>
+    <button class="btn secondary" style="max-width:440px;" onclick="loadME();S.screen='leaderboard';render()">🏆 View Global Leaderboard</button>
+    ${contactBox()}
+    <button class="btn secondary" style="max-width:200px;" onclick="resetAll();S.screen='intro';render()">${UI.again}</button>
+  </div>`;
+}
+function downloadCert(){
+  try{
+    const cv = buildCert();
+    const a = document.createElement('a');
+    a.download = `RUZIVO_PGCN_Certificate_${(S.name||'Participant').replace(/\s+/g,'_')}_2026.png`;
+    a.href = cv.toDataURL('image/png',1.0);
+    a.click();
+  }catch(e){ alert('Please screenshot this screen to save your certificate.'); }
+}
+
+/* ---------- router ---------- */
+function updateBeginBtn(){
+  const b = document.getElementById('beginBtn');
+  if(!b) return;
+  const ok = S.country.trim().length > 0;
+  b.disabled = !ok;
+  b.style.opacity = ok ? '1' : '.4';
+}
+
+function render(){
+  const app = document.getElementById("app");
+  let html = "";
+  switch(S.screen){
+    case "intro": html = screenIntro(); break;
+    case "register": html = screenRegister(); break;
+    case "concept": html = screenConcept(); break;
+    case "map": html = screenMap(); break;
+    case "zonecomplete": html = screenZoneComplete(); break;
+    case "wrongreview": html = screenWrongReview(); break;
+    case "game": html = screenGame(); break;
+    case "toolkit": html = screenLikert("toolkit"); break;
+    case "psychometric": html = screenLikert("psychometric"); break;
+    case "leaderboard": html = screenLeaderboard(); break;
+    case "me": html = screenME(); break;
+    case "report": html = screenReport(); break;
+    default: html = screenIntro();
+  }
+  app.innerHTML = html;
+  if(S.screen==="zonecomplete") spawnConfetti();
+}
+function spawnConfetti(){
+  const host = document.getElementById("confettiHost");
+  if(!host) return;
+  const colors=[C.gold,C.blue,C.green,C.purple,C.pink,C.teal,C.red];
+  for(let i=0;i<40;i++){
+    const p=document.createElement("div");
+    p.className="confetti-piece";
+    const size=6+Math.random()*6;
+    p.style.left=(Math.random()*100)+"%";
+    p.style.width=size+"px"; p.style.height=size+"px";
+    p.style.background=colors[Math.floor(Math.random()*colors.length)];
+    p.style.borderRadius=Math.random()>0.5?"50%":"2px";
+    p.style.animationDuration=(1.4+Math.random()*1.2)+"s";
+    p.style.animationDelay=(Math.random()*0.8)+"s";
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),3000);
+  }
+}
+
+render();
+</script>
+</body>
+</html>
